@@ -1,11 +1,10 @@
 import { ChangeEvent, useMemo, useState } from 'react';
+import { downloadGoogleSheet } from './services/googleSheets';
 import { calculatePcs, PCS_RULES } from './services/pcs';
 import { groupPatients, parseSpreadsheet } from './services/spreadsheet';
-import { Evaluation, PcsResult, SpreadsheetParseResult } from './types';
+import { PcsResult, SpreadsheetParseResult } from './types';
 
-const EXAMPLE_LINK =
-  'https://docs.google.com/spreadsheets/d/1l4nZqJUeDWCive3MqWGEk13-drRKlL4D4kw-iti5XYg/edit?resourcekey=&gid=218267114#gid=218267114';
-
+const EXAMPLE_LINK = 'https://docs.google.com/spreadsheets/d/SEU_ID_DA_PLANILHA/edit?gid=0';
 const scoreTone = (significant: boolean) => (significant ? 'warning' : 'ok');
 
 function App() {
@@ -17,15 +16,14 @@ function App() {
   const [query, setQuery] = useState('');
   const [selectedPatientKey, setSelectedPatientKey] = useState('');
   const [selectedEvaluationRow, setSelectedEvaluationRow] = useState<number | null>(null);
-  const [savedPdf, setSavedPdf] = useState('');
 
   const patients = useMemo(() => groupPatients(data?.evaluations ?? []), [data]);
 
   const filteredPatients = useMemo(() => {
-    const normalized = query.trim().toLowerCase();
+    const normalized = query.trim().toLocaleLowerCase('pt-BR');
     if (!normalized) return patients;
     return patients.filter((patient) =>
-      `${patient.id} ${patient.name}`.toLowerCase().includes(normalized),
+      `${patient.id} ${patient.name}`.toLocaleLowerCase('pt-BR').includes(normalized),
     );
   }, [patients, query]);
 
@@ -44,7 +42,6 @@ function App() {
     setData(parsed);
     setSourceLabel(label);
     setQuery('');
-    setSavedPdf('');
     const groups = groupPatients(parsed.evaluations);
     const first = groups[0];
     setSelectedPatientKey(first?.key ?? '');
@@ -56,28 +53,24 @@ function App() {
     if (!file) return;
 
     setError('');
+    setLoading(true);
     try {
       const parsed = parseSpreadsheet(await file.arrayBuffer());
       loadParsedData(parsed, file.name);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Falha ao abrir a planilha.');
     } finally {
+      setLoading(false);
       event.target.value = '';
     }
   };
 
   const handleSync = async () => {
-    if (!sheetUrl.trim()) {
-      setError('Cole o link da planilha do Google Sheets.');
-      return;
-    }
-
     setLoading(true);
     setError('');
-    setSavedPdf('');
     try {
-      const bytes = await window.clinicaDor.downloadGoogleSheet(sheetUrl.trim());
-      const parsed = parseSpreadsheet(new Uint8Array(bytes));
+      const bytes = await downloadGoogleSheet(sheetUrl);
+      const parsed = parseSpreadsheet(bytes);
       loadParsedData(parsed, 'Google Sheets');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível sincronizar a planilha.');
@@ -90,76 +83,63 @@ function App() {
     setSelectedPatientKey(key);
     const patient = patients.find((candidate) => candidate.key === key);
     setSelectedEvaluationRow(patient?.evaluations[0]?.rowNumber ?? null);
-    setSavedPdf('');
-  };
-
-  const savePdf = async () => {
-    if (!selectedEvaluation || !pcsResult) return;
-    setSavedPdf('');
-    const filePath = await window.clinicaDor.saveReportPdf({
-      patient: {
-        id: selectedEvaluation.id,
-        name: selectedEvaluation.name,
-        date: selectedEvaluation.date,
-        researcher: selectedEvaluation.researcher,
-        moment: selectedEvaluation.moment,
-      },
-      pcs: pcsResult,
-    });
-    if (filePath) setSavedPdf(`Relatório salvo em: ${filePath}`);
   };
 
   return (
     <div className="app-shell">
-      <header className="topbar">
-        <div className="brand-mark">CD</div>
-        <div>
-          <h1>Clínica da Dor — UEPB</h1>
-          <p>Apuração automatizada da Escala de Catastrofização da Dor (PCS)</p>
+      <header className="topbar no-print">
+        <div className="topbar-inner">
+          <img className="brand-icon" src="/icon.png" alt="Ícone PCS" />
+          <div>
+            <h1>Clínica da Dor — UEPB</h1>
+            <p>Apuração automatizada da Escala de Catastrofização da Dor (PCS)</p>
+          </div>
         </div>
       </header>
 
       <main className="page-grid">
-        <section className="source-card card">
+        <section className="source-card card no-print">
           <div className="section-heading">
             <div>
               <span className="eyebrow">Fonte dos dados</span>
               <h2>Carregar avaliações</h2>
             </div>
-            <span className="source-pill">{sourceLabel}</span>
+            <span className="source-pill" title={sourceLabel}>{sourceLabel}</span>
           </div>
 
-          <label className="field-label" htmlFor="sheet-url">
-            Link da planilha do Google Sheets
-          </label>
+          <label className="field-label" htmlFor="sheet-url">Link da planilha do Google Sheets</label>
           <div className="url-row">
             <input
               id="sheet-url"
+              inputMode="url"
               value={sheetUrl}
               onChange={(event) => setSheetUrl(event.target.value)}
               placeholder={EXAMPLE_LINK}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' && !loading) void handleSync();
+              }}
             />
-            <button className="button primary" onClick={handleSync} disabled={loading}>
-              {loading ? 'Sincronizando…' : 'Sincronizar'}
+            <button className="button primary" onClick={() => void handleSync()} disabled={loading}>
+              {loading ? 'Carregando…' : 'Sincronizar'}
             </button>
           </div>
           <p className="helper">
-            Na primeira versão, o link precisa permitir acesso à planilha. O aplicativo converte o link do Google Sheets
-            em XLSX e lê somente os campos de identificação e os 13 itens da PCS.
+            O sistema tenta exportar a planilha como XLSX. Se o Google exigir autenticação e não permitir a exportação,
+            use o arquivo XLSX baixado como alternativa.
           </p>
 
           <div className="divider"><span>ou</span></div>
 
-          <label className="button secondary file-button">
-            Abrir arquivo XLSX local
-            <input type="file" accept=".xlsx,.xls" onChange={handleLocalFile} />
+          <label className={`button secondary file-button ${loading ? 'disabled' : ''}`}>
+            Abrir arquivo XLSX
+            <input type="file" accept=".xlsx,.xls" onChange={handleLocalFile} disabled={loading} />
           </label>
 
-          {error && <div className="alert error">{error}</div>}
+          {error && <div className="alert error" role="alert">{error}</div>}
           {data && (
             <div className="load-summary">
-              <strong>{data.evaluations.length}</strong> avaliações carregadas em <strong>{patients.length}</strong>{' '}
-              pacientes. Aba: <strong>{data.sheetName}</strong>.
+              <strong>{data.evaluations.length}</strong> avaliações em <strong>{patients.length}</strong> pacientes.
+              {' '}Aba lida: <strong>{data.sheetName}</strong>.
               {data.warnings.length > 0 && (
                 <span className="warning-inline"> {data.warnings.length} avaliação(ões) com pendência.</span>
               )}
@@ -168,13 +148,14 @@ function App() {
         </section>
 
         <section className="workspace">
-          <aside className="patients-panel card">
+          <aside className="patients-panel card no-print">
             <div className="section-heading compact">
               <div>
                 <span className="eyebrow">Pacientes</span>
                 <h2>Selecione um paciente</h2>
               </div>
             </div>
+
             <input
               className="search"
               value={query}
@@ -185,9 +166,7 @@ function App() {
 
             <div className="patient-list">
               {!data && <div className="empty-small">Carregue uma planilha para listar os pacientes.</div>}
-              {data && filteredPatients.length === 0 && (
-                <div className="empty-small">Nenhum paciente encontrado.</div>
-              )}
+              {data && filteredPatients.length === 0 && <div className="empty-small">Nenhum paciente encontrado.</div>}
               {filteredPatients.map((patient) => {
                 const hasIssue = patient.evaluations.some((evaluation) => evaluation.errors.length > 0);
                 return (
@@ -196,11 +175,11 @@ function App() {
                     className={`patient-row ${patient.key === selectedPatientKey ? 'active' : ''}`}
                     onClick={() => selectPatient(patient.key)}
                   >
-                    <div>
+                    <div className="patient-identity">
                       <strong>{patient.name || 'Paciente sem nome'}</strong>
                       <span>{patient.id || 'Sem ID'}</span>
                     </div>
-                    <div className="patient-count">
+                    <div className="patient-count" aria-label={`${patient.evaluations.length} avaliações`}>
                       {patient.evaluations.length}
                       {hasIssue && <span className="issue-dot" title="Há avaliação com pendência" />}
                     </div>
@@ -210,30 +189,35 @@ function App() {
             </div>
           </aside>
 
-          <section className="result-panel card">
+          <section className="result-panel card print-report">
             {!selectedPatient || !selectedEvaluation ? (
               <div className="empty-state">
-                <div className="empty-icon">PCS</div>
+                <img className="empty-logo" src="/icon.png" alt="" />
                 <h2>Nenhuma avaliação selecionada</h2>
-                <p>Carregue a planilha e escolha o paciente para apurar a escala.</p>
+                <p>Carregue uma planilha e escolha o paciente para apurar a PCS.</p>
               </div>
             ) : (
               <>
+                <div className="print-only print-title">
+                  <img src="/icon.png" alt="" />
+                  <div>
+                    <strong>Clínica da Dor — UEPB</strong>
+                    <span>Relatório de apuração da PCS</span>
+                  </div>
+                </div>
+
                 <div className="patient-header">
                   <div>
                     <span className="eyebrow">Paciente</span>
-                    <h2>{selectedPatient.name}</h2>
-                    <p>ID: {selectedPatient.id}</p>
+                    <h2>{selectedPatient.name || 'Paciente sem nome'}</h2>
+                    <p>ID: {selectedPatient.id || '—'}</p>
                   </div>
-                  <div className="evaluation-select-wrap">
+                  <div className="evaluation-select-wrap no-print">
                     <label htmlFor="evaluation">Avaliação</label>
                     <select
                       id="evaluation"
                       value={selectedEvaluation.rowNumber}
-                      onChange={(event) => {
-                        setSelectedEvaluationRow(Number(event.target.value));
-                        setSavedPdf('');
-                      }}
+                      onChange={(event) => setSelectedEvaluationRow(Number(event.target.value))}
                     >
                       {selectedPatient.evaluations.map((evaluation) => (
                         <option value={evaluation.rowNumber} key={evaluation.rowNumber}>
@@ -253,9 +237,7 @@ function App() {
                 {selectedEvaluation.errors.length > 0 ? (
                   <div className="alert error result-error">
                     <strong>Não é possível calcular esta avaliação.</strong>
-                    <ul>
-                      {selectedEvaluation.errors.map((item) => <li key={item}>{item}</li>)}
-                    </ul>
+                    <ul>{selectedEvaluation.errors.map((item) => <li key={item}>{item}</li>)}</ul>
                   </div>
                 ) : pcsResult ? (
                   <>
@@ -297,9 +279,10 @@ function App() {
                       <span>≥ 30 clinicamente relevante</span>
                     </div>
 
-                    <div className="actions-row">
-                      <button className="button primary" onClick={savePdf}>Gerar relatório em PDF</button>
-                      {savedPdf && <span className="saved-message">{savedPdf}</span>}
+                    <div className="actions-row no-print">
+                      <button className="button primary" onClick={() => window.print()}>
+                        Imprimir / salvar PDF
+                      </button>
                     </div>
                   </>
                 ) : null}
@@ -307,6 +290,13 @@ function App() {
             )}
           </section>
         </section>
+
+        {data && data.warnings.length > 0 && (
+          <details className="warnings-card card no-print">
+            <summary>Pendências encontradas ({data.warnings.length})</summary>
+            <ul>{data.warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul>
+          </details>
+        )}
 
         <footer className="clinical-note">
           A ferramenta automatiza a apuração da PCS conforme os pontos de corte configurados. O resultado não substitui
@@ -337,7 +327,9 @@ function ScoreCard({
         </span>
       </div>
       <div className="score-value">{score}<small>/{max}</small></div>
-      <div className="progress"><span style={{ width: `${Math.min(100, (score / max) * 100)}%` }} /></div>
+      <div className="progress" aria-hidden="true">
+        <span style={{ width: `${Math.min(100, (score / max) * 100)}%` }} />
+      </div>
     </div>
   );
 }

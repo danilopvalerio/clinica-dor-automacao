@@ -1,141 +1,58 @@
-# Clínica da Dor — UEPB — PCS
+# Clínica da Dor — UEPB — PCS (Web)
 
-Aplicativo desktop multiplataforma em **Electron + React + TypeScript** para automatizar a apuração da **Escala de Catastrofização da Dor (PCS)**.
+Aplicação web responsiva em React + TypeScript + Vite para apuração da Escala de Catastrofização da Dor (PCS).
 
-## O que esta versão faz
+## Funcionalidades
 
-- recebe um link do Google Sheets e baixa a planilha em XLSX quando o compartilhamento permite;
-- também permite abrir um `.xlsx` local;
-- identifica as 13 questões da PCS pelos cabeçalhos;
-- ignora o PROMIS-29 nesta versão;
-- permite buscar paciente por nome/ID e selecionar a avaliação;
-- calcula Ruminação, Magnificação, Desamparo e Escore Total;
-- interpreta automaticamente os pontos de corte;
-- valida respostas ausentes ou fora da faixa 0–4;
-- gera relatório em PDF;
-- possui tela de carregamento;
-- possui ícones próprios para Windows, Linux e macOS;
-- possui build automatizado para os três sistemas via GitHub Actions.
+- Importação de `.xlsx`/`.xls` diretamente no navegador.
+- Sincronização por link do Google Sheets quando a planilha permite exportação sem autenticação adicional.
+- Identificação automática das 13 questões da PCS pelos cabeçalhos do Google Forms.
+- Agrupamento por paciente e múltiplas avaliações.
+- Cálculo de Ruminação, Magnificação, Desamparo e Escore Total.
+- Interpretação automática dos pontos de corte.
+- Layout responsivo para desktop, tablet e celular.
+- Impressão/Salvar como PDF pelo navegador.
+- Favicon/ícone do projeto já configurado.
+- Função serverless `/api/sheet` pronta para Vercel, sem banco de dados.
 
-## Regras PCS
+## Regras PCS configuradas
 
-- Ruminação: itens 8, 9, 10 e 11; significativa em `>= 11`.
-- Magnificação: itens 6, 7 e 13; significativa em `>= 5`.
-- Desamparo: itens 1, 2, 3, 4, 5 e 12; significativa em `>= 13`.
-- Total 0–14: catastrofização baixa.
-- Total 15–29: catastrofização moderada.
-- Total `>= 30`: nível clinicamente relevante.
+- Ruminação: itens 8, 9, 10 e 11; significativo quando `>= 11`.
+- Magnificação: itens 6, 7 e 13; significativo quando `>= 5`.
+- Desamparo: itens 1, 2, 3, 4, 5 e 12; significativo quando `>= 13`.
+- Escore total: 0–14 baixa; 15–29 moderada; >= 30 clinicamente relevante.
 
-## Desenvolvimento
+## Requisitos locais
 
-Requer **Node.js 20+** e npm apenas no computador de desenvolvimento.
+- Node.js 20.19+ (Node 22 ou 24 também funciona).
+- npm.
+
+## Rodar localmente
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Builds locais
+Abra o endereço mostrado pelo Vite, normalmente `http://localhost:5173`.
 
-### Windows
+A rota de sincronização do Google Sheets também funciona no `npm run dev`, porque o `vite.config.ts` contém um proxy local equivalente à função da Vercel.
 
-```bash
-npm run dist:win
-```
-
-Gera:
-
-- `Setup.exe`: instalador NSIS para uso diário;
-- `Portable.exe`: executável direto sem instalação.
-
-O Setup é `perMachine`, pede elevação de administrador, usa a pasta tradicional do Windows e permite que o usuário altere o diretório. Também cria atalhos na Área de Trabalho e Menu Iniciar.
-
-### Linux
-
-Em uma máquina Linux:
+## Build local
 
 ```bash
-npm run dist:linux
+npm run build
+npm run preview
 ```
 
-Gera:
+## Vercel
 
-- `.AppImage`: versão portátil;
-- `.deb`: instalador para Debian/Ubuntu e derivados.
+O projeto contém `vercel.json` e a função `api/sheet.ts`. Ao importar o repositório na Vercel, o preset Vite deve ser detectado e o deploy pode ser feito sem variáveis de ambiente.
 
-### macOS
+## Observação sobre links restritos
 
-Em um Mac:
+A aplicação não usa OAuth do Google. Se o link depender exclusivamente da sessão autenticada do usuário, a exportação via servidor pode ser negada pelo Google. Nesse caso, baixe a planilha como XLSX e use a opção de arquivo local.
 
-```bash
-npm run dist:mac
-```
+## Dados
 
-Gera build **universal** para Intel e Apple Silicon:
-
-- `.dmg`: distribuição/instalação;
-- `.zip`: contém a aplicação para distribuição direta.
-
-A versão macOS está configurada sem assinatura digital. Para distribuição pública sem alertas do Gatekeeper será necessário configurar Apple Developer ID e notarização.
-
-## GitHub Actions
-
-O arquivo abaixo já está configurado:
-
-```text
-.github/workflows/build.yml
-```
-
-Ele só executa quando iniciado manualmente no GitHub em **Actions → Build multiplataforma → Run workflow**.
-
-São executados três jobs independentes:
-
-- Windows → Setup + Portable;
-- Ubuntu → AppImage + DEB;
-- macOS → DMG + ZIP universal.
-
-Ao final, os arquivos ficam disponíveis na seção **Artifacts** da execução.
-
-## Recursos de build
-
-```text
-build/
-├── icon.ico    # Windows
-├── icon.png    # Linux
-├── icon.icns   # macOS
-└── splash.bmp  # splash nativa do Portable no Windows
-```
-
-## Estrutura
-
-```text
-.github/
-└── workflows/
-    └── build.yml
-build/
-├── icon.ico
-├── icon.png
-├── icon.icns
-└── splash.bmp
-electron/
-├── main.ts
-├── preload.ts
-└── report.ts
-src/
-├── App.tsx
-├── services/
-│   ├── spreadsheet.ts
-│   └── pcs.ts
-└── types.ts
-examples/
-└── exemplo_respostas_clinica_da_dor.xlsx
-package.json
-```
-
-## Google Sheets
-
-Na versão atual, a planilha deve permitir exportação sem autenticação adicional. Planilhas privadas exigirão uma integração autenticada com a Google Sheets API em uma versão futura.
-
-## Observação de uso clínico
-
-O sistema automatiza a apuração das regras configuradas e não substitui avaliação clínica, diagnóstico ou julgamento profissional.
+Não há banco de dados nesta versão. Evite versionar dados reais de pacientes. O `.gitignore` bloqueia planilhas por padrão e libera apenas o arquivo fictício em `examples/`.

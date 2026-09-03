@@ -1,25 +1,19 @@
 {
-  "name": "clinica-dor-pcs-uepb",
-  "version": "0.1.0",
+  "name": "clinica-dor-pcs-web",
+  "version": "0.2.0",
   "private": true,
-  "description": "Aplicativo desktop para apuração automatizada da Escala de Catastrofização da Dor (PCS).",
-  "author": "Clínica da Dor - UEPB",
-  "main": "dist-electron/main.js",
+  "type": "module",
+  "description": "Aplicação web responsiva para apuração automatizada da Escala de Catastrofização da Dor (PCS) da Clínica da Dor - UEPB.",
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "scripts": {
-    "dev": "concurrently -k \"vite\" \"tsc -p tsconfig.main.json --watch\" \"wait-on http://localhost:5173 dist-electron/main.js && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .\"",
-    "build:web": "vite build",
-    "build:electron": "tsc -p tsconfig.main.json",
-    "build": "npm run build:electron && npm run build:web",
-    "start": "npm run build && electron .",
-    "dist": "npm run dist:win",
-    "dist:win": "npm run build && electron-builder --win --x64",
-    "dist:linux": "npm run build && electron-builder --linux --x64",
-    "dist:mac": "npm run build && electron-builder --mac --universal",
-    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.main.json --noEmit"
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "^4.6.0",
-    "vite": "^7.1.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "xlsx": "^0.18.5"
@@ -28,86 +22,8 @@
     "@types/node": "^22.15.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
-    "concurrently": "^9.2.0",
-    "cross-env": "^7.0.3",
-    "electron": "^37.2.0",
-    "electron-builder": "^26.0.12",
+    "@vitejs/plugin-react": "^4.6.0",
     "typescript": "^5.8.3",
-    "wait-on": "^8.0.3"
-  },
-  "build": {
-    "appId": "br.edu.uepb.clinicador.pcs",
-    "productName": "Clínica da Dor - PCS",
-    "asar": true,
-    "directories": {
-      "output": "release",
-      "buildResources": "build"
-    },
-    "files": [
-      "dist/**/*",
-      "dist-electron/**/*",
-      "package.json"
-    ],
-    "win": {
-      "icon": "build/icon.ico",
-      "target": [
-        {
-          "target": "nsis",
-          "arch": ["x64"]
-        },
-        {
-          "target": "portable",
-          "arch": ["x64"]
-        }
-      ]
-    },
-    "nsis": {
-      "artifactName": "Clinica-da-Dor-PCS-${version}-Setup.${ext}",
-      "oneClick": false,
-      "perMachine": true,
-      "allowElevation": true,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "shortcutName": "Clínica da Dor - PCS",
-      "installerIcon": "build/icon.ico",
-      "uninstallerIcon": "build/icon.ico"
-    },
-    "portable": {
-      "artifactName": "Clinica-da-Dor-PCS-${version}-Portable.${ext}",
-      "splashImage": "build/splash.bmp",
-      "useZip": true
-    },
-    "linux": {
-      "icon": "build/icon.png",
-      "category": "Science",
-      "artifactName": "Clinica-da-Dor-PCS-${version}-${arch}.${ext}",
-      "target": [
-        {
-          "target": "AppImage",
-          "arch": ["x64"]
-        },
-        {
-          "target": "deb",
-          "arch": ["x64"]
-        }
-      ]
-    },
-    "mac": {
-      "icon": "build/icon.icns",
-      "category": "public.app-category.medical",
-      "artifactName": "Clinica-da-Dor-PCS-${version}-${arch}.${ext}",
-      "identity": null,
-      "target": [
-        {
-          "target": "dmg",
-          "arch": ["universal"]
-        },
-        {
-          "target": "zip",
-          "arch": ["universal"]
-        }
-      ]
-    }
+    "vite": "^7.1.0"
   }
 }
