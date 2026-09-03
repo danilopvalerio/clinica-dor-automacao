@@ -1,0 +1,17 @@
+node_modules/
+dist/
+dist-electron/
+release/
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.env
+.env.*
+
+# Evita enviar por engano planilhas/dados reais de pacientes para o GitHub.
+*.xlsx
+*.xls
+*.csv
+!examples/exemplo_respostas_clinica_da_dor.xlsx
