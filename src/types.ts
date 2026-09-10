@@ -2,6 +2,11 @@ export type PcsItemNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 1
 
 export interface Evaluation {
   rowNumber: number;
+  recordKey: string;
+  sourceId: string;
+  sourceLabel: string;
+  sheetName: string;
+  scales: import("./services/forms").ScaleId[];
   id: string;
   name: string;
   date: string;
@@ -10,6 +15,8 @@ export interface Evaluation {
   timestamp: string;
   pcsResponses: Record<PcsItemNumber, number | null>;
   errors: string[];
+  fields: Record<string, string>;
+  pcsQuestions: Record<PcsItemNumber, string>;
 }
 
 export interface PatientGroup {

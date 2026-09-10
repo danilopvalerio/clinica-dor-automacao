@@ -11,6 +11,7 @@ const sumItems = (evaluation: Evaluation, items: PcsItemNumber[]) =>
   items.reduce((sum, item) => sum + (evaluation.pcsResponses[item] ?? 0), 0);
 
 export function calculatePcs(evaluation: Evaluation): PcsResult {
+  if (!evaluation.scales.includes('pcs')) throw new Error('Este registro não contém a PCS.');
   if (evaluation.errors.length > 0) {
     throw new Error('A avaliação possui respostas ausentes ou inválidas e não pode ser calculada.');
   }

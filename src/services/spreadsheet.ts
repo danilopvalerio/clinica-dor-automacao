@@ -1,176 +1,58 @@
 import * as XLSX from 'xlsx';
 import { Evaluation, PatientGroup, PcsItemNumber, SpreadsheetParseResult } from '../types';
-
-const normalize = (value: string) =>
-  value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[–—]/g, '-')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase();
-
-const FIELD_ALIASES = {
-  timestamp: ['timestamp'],
-  id: ['codigo/id unico do paciente', 'código/id único do paciente'],
-  name: ['nome completo do paciente'],
-  date: ['data da avaliacao', 'data da avaliação'],
-  researcher: [
-    'extensionista/pesquisador(a) responsavel pela coleta',
-    'extensionista/pesquisador(a) responsável pela coleta',
-  ],
-  moment: ['momento da avaliacao', 'momento da avaliação'],
+import { fieldScale, normalize, ScaleId } from './forms';
+const FIELD_ALIASES={
+ timestamp:['timestamp','carimbo de data/hora','carimbo de data e hora'],
+ id:['codigo/id unico do paciente','codigo do paciente','id do paciente','cpf do paciente'],
+ name:['nome completo do paciente','nome do paciente'],
+ date:['data da avaliacao'],
+ researcher:['extensionista/pesquisador(a) responsavel pela coleta','responsavel pela coleta'],
+ moment:['momento da avaliacao'],
 };
-
-function findHeader(headers: string[], aliases: string[]): string | undefined {
-  const normalizedAliases = aliases.map(normalize);
-  return headers.find((header) => normalizedAliases.includes(normalize(header)));
+const findHeader=(headers:string[],aliases:string[])=>headers.find(h=>aliases.includes(normalize(h).replace(/^\d+[.)]\s*/,'')));
+const asText=(v:unknown)=>String(v??'').trim();
+function parsePcsValue(value:unknown):number|null {
+ if(typeof value==='number')return Number.isInteger(value)&&value>=0&&value<=4?value:null;
+ const match=asText(value).match(/^([0-4])(?:\s*[-–—:]\s*.*)?$/);
+ return match?Number(match[1]):null;
 }
-
-function findPcsHeaders(headers: string[]): Map<PcsItemNumber, string> {
-  const found = new Map<PcsItemNumber, string>();
-
-  for (const header of headers) {
-    if (!normalize(header).startsWith('quando estou sentindo dor')) continue;
-    const match = header.match(/\[(\d{1,2})\./);
-    if (!match) continue;
-    const item = Number(match[1]);
-    if (item >= 1 && item <= 13) found.set(item as PcsItemNumber, header);
-  }
-
-  return found;
-}
-
-function parsePcsValue(value: unknown): number | null {
-  if (typeof value === 'number' && Number.isFinite(value)) {
-    return value >= 0 && value <= 4 && Number.isInteger(value) ? value : null;
-  }
-
-  const text = String(value ?? '').trim();
-  if (!text) return null;
-  const match = text.match(/^([0-4])(?:\D|$)/);
-  if (!match) return null;
-  return Number(match[1]);
-}
-
-function asText(value: unknown): string {
-  if (value === null || value === undefined) return '';
-  return String(value).trim();
-}
-
-export function parseSpreadsheet(data: ArrayBuffer | Uint8Array): SpreadsheetParseResult {
-  const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-  const sheetName = workbook.SheetNames[0];
-  if (!sheetName) throw new Error('A planilha não possui nenhuma aba.');
-
-  const sheet = workbook.Sheets[sheetName];
-  const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, {
-    defval: '',
-    raw: false,
-    dateNF: 'dd/mm/yyyy',
+export function parseSpreadsheet(data:ArrayBuffer|Uint8Array,sourceId='local',sourceLabel='Planilha'):SpreadsheetParseResult {
+ const workbook=XLSX.read(data,{type:'array',cellDates:true});
+ const evaluations:Evaluation[]=[],warnings:string[]=[],readSheets:string[]=[];
+ for(const sheetName of workbook.SheetNames){
+  const rows=XLSX.utils.sheet_to_json<Record<string,unknown>>(workbook.Sheets[sheetName],{defval:'',raw:false,dateNF:'dd/mm/yyyy'});
+  const headers=Object.keys(rows[0]??{});if(!headers.length)continue;
+  const scales=Array.from(new Set(headers.map(fieldScale).filter((s):s is ScaleId=>!!s)));
+  if(!scales.length){warnings.push(`Aba “${sheetName}”: nenhum cabeçalho de escala reconhecido; aba ignorada.`);continue;}
+  const meta=Object.fromEntries(Object.entries(FIELD_ALIASES).map(([key,aliases])=>[key,findHeader(headers,aliases)]));
+  const missing=Object.entries({id:'Código/ID único do paciente',name:'Nome completo do paciente',date:'Data da avaliação',researcher:'Responsável pela coleta',moment:'Momento da avaliação'}).filter(([key])=>!meta[key]).map(([,label])=>label);
+  if(missing.length){warnings.push(`Aba “${sheetName}”: colunas obrigatórias ausentes (${missing.join(', ')}); aba ignorada.`);continue;}
+  readSheets.push(sheetName);
+  const pcsHeaders=new Map<PcsItemNumber,string>();
+  for(const h of headers){if(fieldScale(h)!=='pcs')continue;const item=Number(h.match(/\[(\d{1,2})\./)?.[1]);if(item>=1&&item<=13)pcsHeaders.set(item as PcsItemNumber,h);}
+  rows.forEach((row,index)=>{
+   if(!Object.values(row).some(v=>asText(v)))return;
+   const rowNumber=typeof row.__rowNum__==='number'?row.__rowNum__+1:index+2, id=asText(row[meta.id!]),name=asText(row[meta.name!]);
+   const errors:string[]=[],pcsResponses={} as Evaluation['pcsResponses'],pcsQuestions={} as Evaluation['pcsQuestions'];
+   for(let i=1;i<=13;i++){const item=i as PcsItemNumber,header=pcsHeaders.get(item);pcsResponses[item]=header?parsePcsValue(row[header]):null;pcsQuestions[item]=header?.match(/\[(.*)\]/)?.[1]??`Item ${i}`;if(scales.includes('pcs')&&pcsResponses[item]===null)errors.push(`Item PCS ${i}: resposta ausente ou inválida`);}
+   if(!id)errors.push('Código/ID do paciente ausente');if(!name)errors.push('Nome do paciente ausente');
+   if(errors.length)warnings.push(`${sheetName}, linha ${rowNumber}: ${errors.join('; ')}.`);
+   evaluations.push({rowNumber,recordKey:JSON.stringify([sourceId,sheetName,rowNumber]),sourceId,sourceLabel,sheetName,scales,id,name,date:asText(row[meta.date!]),researcher:asText(row[meta.researcher!]),moment:asText(row[meta.moment!]),timestamp:meta.timestamp?asText(row[meta.timestamp]):'',pcsResponses,pcsQuestions,errors,fields:Object.fromEntries(Object.entries(row).map(([k,v])=>[k,asText(v)]))});
   });
-
-  const headers = Object.keys(rows[0] ?? {});
-  if (headers.length === 0) throw new Error('A planilha está vazia ou não possui cabeçalhos reconhecíveis.');
-
-  const timestampHeader = findHeader(headers, FIELD_ALIASES.timestamp);
-  const idHeader = findHeader(headers, FIELD_ALIASES.id);
-  const nameHeader = findHeader(headers, FIELD_ALIASES.name);
-  const dateHeader = findHeader(headers, FIELD_ALIASES.date);
-  const researcherHeader = findHeader(headers, FIELD_ALIASES.researcher);
-  const momentHeader = findHeader(headers, FIELD_ALIASES.moment);
-  const pcsHeaders = findPcsHeaders(headers);
-
-  const missingFields: string[] = [];
-  if (!idHeader) missingFields.push('Código/ID único do paciente');
-  if (!nameHeader) missingFields.push('Nome completo do paciente');
-  if (!dateHeader) missingFields.push('Data da avaliação');
-  if (!researcherHeader) missingFields.push('Responsável pela coleta');
-  if (!momentHeader) missingFields.push('Momento da avaliação');
-
-  if (missingFields.length) {
-    throw new Error(`Colunas obrigatórias não encontradas: ${missingFields.join(', ')}.`);
-  }
-
-  if (pcsHeaders.size !== 13) {
-    const missingItems = Array.from({ length: 13 }, (_, i) => i + 1).filter(
-      (item) => !pcsHeaders.has(item as PcsItemNumber),
-    );
-    throw new Error(`Não foram encontrados todos os 13 itens da PCS. Itens ausentes: ${missingItems.join(', ')}.`);
-  }
-
-  const warnings: string[] = [];
-  const evaluations: Evaluation[] = [];
-
-  rows.forEach((row, index) => {
-    const id = asText(row[idHeader!]);
-    const name = asText(row[nameHeader!]);
-    const hasAnyPcs = Array.from(pcsHeaders.values()).some((header) => asText(row[header]) !== '');
-
-    if (!id && !name && !hasAnyPcs) return;
-
-    const pcsResponses = {} as Evaluation['pcsResponses'];
-    const errors: string[] = [];
-
-    for (let item = 1; item <= 13; item += 1) {
-      const itemNumber = item as PcsItemNumber;
-      const header = pcsHeaders.get(itemNumber)!;
-      const raw = row[header];
-      const parsed = parsePcsValue(raw);
-      pcsResponses[itemNumber] = parsed;
-      if (parsed === null) errors.push(`Item ${item}: resposta ausente ou inválida`);
-    }
-
-    if (!id) errors.push('Código/ID do paciente ausente');
-    if (!name) errors.push('Nome do paciente ausente');
-
-    const rowNumber = index + 2;
-    if (errors.length) warnings.push(`Linha ${rowNumber}: ${errors.join('; ')}.`);
-
-    evaluations.push({
-      rowNumber,
-      id,
-      name,
-      date: asText(row[dateHeader!]),
-      researcher: asText(row[researcherHeader!]),
-      moment: asText(row[momentHeader!]),
-      timestamp: timestampHeader ? asText(row[timestampHeader]) : '',
-      pcsResponses,
-      errors,
-    });
-  });
-
-  if (evaluations.length === 0) {
-    throw new Error('Nenhuma avaliação foi encontrada na planilha.');
-  }
-
-  return { evaluations, warnings, sheetName };
+ }
+ if(!evaluations.length)throw new Error(warnings.join(' ')||'Nenhuma avaliação foi encontrada. Confira os cabeçalhos da planilha.');
+ return {evaluations,warnings,sheetName:readSheets.join(', ')};
 }
-
-export function groupPatients(evaluations: Evaluation[]): PatientGroup[] {
-  const groups = new Map<string, PatientGroup>();
-
-  for (const evaluation of evaluations) {
-    const key = evaluation.id ? `id:${normalize(evaluation.id)}` : `name:${normalize(evaluation.name)}`;
-    const existing = groups.get(key);
-
-    if (existing) {
-      existing.evaluations.push(evaluation);
-      if (!existing.name && evaluation.name) existing.name = evaluation.name;
-    } else {
-      groups.set(key, {
-        key,
-        id: evaluation.id,
-        name: evaluation.name,
-        evaluations: [evaluation],
-      });
-    }
-  }
-
-  return Array.from(groups.values())
-    .map((group) => ({
-      ...group,
-      evaluations: [...group.evaluations].sort((a, b) => b.rowNumber - a.rowNumber),
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+// Reimporting the same source refreshes its rows, while distinct form exports coexist.
+export function mergeSpreadsheet(previous:SpreadsheetParseResult|null,next:SpreadsheetParseResult):SpreadsheetParseResult {
+ const sources=new Set(next.evaluations.map(e=>e.sourceId));
+ return {evaluations:[...(previous?.evaluations??[]).filter(e=>!sources.has(e.sourceId)),...next.evaluations],warnings:next.warnings,sheetName:next.sheetName};
+}
+export function groupPatients(evaluations:Evaluation[]):PatientGroup[]{
+ const groups=new Map<string,PatientGroup>();
+ for(const e of evaluations){
+  const key=e.id?`id:${normalize(e.id)}`:e.name?`name:${normalize(e.name)}`:`record:${e.recordKey}`;
+  const p=groups.get(key);if(p){p.evaluations.push(e);if(!p.name&&e.name)p.name=e.name;}else groups.set(key,{key,id:e.id,name:e.name,evaluations:[e]});
+ }
+ return Array.from(groups.values()).map(p=>({...p,evaluations:[...p.evaluations].reverse()})).sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
 }
