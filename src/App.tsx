@@ -68,7 +68,7 @@ function App(){
    <div className="brand-logos"><img className="nutes-logo" src="/logo-nutes.svg" alt="NUTES"/><img className="uepb-logo" src="/logo-uepb.svg" alt="UEPB"/></div>
    <div className="brand-name"><strong>Clínica da Dor</strong><span>Núcleo de Tecnologias Estratégicas em Saúde</span></div>
    <nav id="mobile-nav" aria-label="Menu principal">{([['dashboard','Página inicial'],['patients','Pacientes'],['scales','Escalas']] as const).map(([view,label],i)=><button key={view} aria-current={activeNav===view?'page':undefined} onClick={()=>navigate({view},true)}><span className="nav-index" aria-hidden="true">0{i+1}</span>{label}</button>)}</nav>
-   <div className="institution">UEPB<span>UNIVERSIDADE ESTADUAL<br/>DA PARAÍBA</span></div>
+   <div className="institution"><span>UNIVERSIDADE ESTADUAL<br/>DA PARAÍBA</span></div>
   </aside>
   {menuOpen&&<button className="menu-scrim no-print" aria-label="Fechar menu" onClick={()=>setMenuOpen(false)}/>}
   <div className="main-area">
