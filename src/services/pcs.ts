@@ -7,6 +7,12 @@ export const PCS_RULES = {
   total: { max: 52, clinicallyRelevantCutoff: 30 },
 } as const;
 
+export const PCS_TOTAL_READINGS = {
+  low: 'Catastrofização baixa.',
+  moderate: 'Catastrofização moderada. Vale explorar em entrevista, sobretudo se uma das subescalas estiver desproporcionalmente alta.',
+  clinicallyRelevant: 'Nível clinicamente relevante de catastrofização (ponto de corte clássico, correspondente aproximadamente ao percentil 75). Indica prioridade para abordagem psicoeducativa e cognitivo-comportamental voltada à dor.',
+} as const;
+
 const sumItems = (evaluation: Evaluation, items: PcsItemNumber[]) =>
   items.reduce((sum, item) => sum + (evaluation.pcsResponses[item] ?? 0), 0);
 

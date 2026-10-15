@@ -1,6 +1,6 @@
 {
   "name": "clinica-dor-pcs-web",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
   "description": "Aplicação web responsiva para apuração automatizada da Escala de Catastrofização da Dor (PCS) da Clínica da Dor - UEPB.",
@@ -8,6 +8,7 @@
     "node": ">=20.19.0"
   },
   "scripts": {
+    "test": "node --test tests/*.test.cjs",
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",

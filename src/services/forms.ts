@@ -1,4 +1,5 @@
 import { Evaluation } from '../types';
+import { SF36_SECTIONS } from './sf36Form';
 export type ScaleId = 'pcs' | 'promis' | 'sf36';
 export const SCALE_NAMES: Record<ScaleId,string> = {pcs:'PCS',promis:'PROMIS-29',sf36:'SF-36'};
 export const normalize = (s:string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[–—]/g,'-').replace(/\s+/g,' ').trim();
@@ -8,13 +9,14 @@ const choices = (labels:string[], codes?:number[]) => labels.map((label,i)=>({la
 const frequency=choices(['Nunca','Raramente','Às vezes','Frequentemente','Sempre']);
 const intensity=choices(['De modo nenhum','Um pouco','Mais ou menos','Bastante','Muitíssimo']);
 const reversedIntensity=choices(['De modo nenhum','Um pouco','Mais ou menos','Bastante','Muitíssimo'],[5,4,3,2,1]);
+const item19Intensity=choices(['Muitíssimo','Bastante','Mais ou menos','Um pouco','De modo nenhum'],[5,4,3,2,1]);
 const yesNo=choices(['Sim','Não']);
 const promisGroups:FormGroup[] = [
  {id:'physical',title:'Função física',expected:4,period:'Capacidade atual',match:h=>h.startsWith('funcao fisica'),options:()=>choices(['Sem nenhuma dificuldade','Com um pouco de dificuldade','Com alguma dificuldade','Com muita dificuldade','Incapaz de fazer'],[5,4,3,2,1])},
  {id:'anxiety',title:'Ansiedade',expected:4,period:'Nos últimos 7 dias',match:h=>h.startsWith('ansiedade'),options:()=>frequency},
  {id:'depression',title:'Depressão',expected:4,period:'Nos últimos 7 dias',match:h=>h.startsWith('depressao'),options:()=>frequency},
  {id:'fatigue',title:'Fadiga',expected:4,period:'Durante os últimos 7 dias',match:h=>h.startsWith('fadiga'),options:()=>intensity},
- {id:'sleep',title:'Distúrbio do sono',expected:4,period:'Nos últimos 7 dias',match:h=>h.startsWith('disturbio do sono'),options:h=>/\[17\.|qualidade do meu sono/.test(h)?choices(['Muito ruim','Ruim','Razoável','Boa','Muito boa'],[5,4,3,2,1]):reversedIntensity},
+ {id:'sleep',title:'Distúrbio do sono',expected:4,period:'Nos últimos 7 dias',match:h=>h.startsWith('disturbio do sono'),options:h=>/\[17\.|qualidade do meu sono/.test(h)?choices(['Muito ruim','Ruim','Razoável','Boa','Muito boa'],[5,4,3,2,1]):/\[(19|20)\./.test(h)?item19Intensity:reversedIntensity},
  {id:'social',title:'Papéis e atividades sociais',expected:4,period:'Nos últimos 7 dias',match:h=>h.startsWith('capacidade de participar'),options:()=>choices(['Nunca','Raramente','Às vezes','Quase sempre','Sempre'],[5,4,3,2,1])},
  {id:'interference',title:'Interferência da dor',expected:4,period:'Nos últimos 7 dias',match:h=>h.startsWith('interferencia da dor'),options:()=>intensity},
  {id:'pain',title:'Intensidade da dor',expected:1,period:'Nos últimos 7 dias',match:h=>h.includes('como voce avaliaria a sua dor')&&h.includes('7 dias'),options:()=>Array.from({length:11},(_,code)=>({code,label:code===0?'Nenhuma dor':code===10?'Pior dor possível':String(code)}))},
@@ -41,7 +43,21 @@ export function fieldScale(header:string):ScaleId|undefined {
  if(sfGroups.some(g=>g.match(h)))return 'sf36';
 }
 export function organizedResponses(evaluation:Evaluation,scale:'promis'|'sf36') {
- return FORM_GROUPS[scale].map(group=>({...group,questions:Object.entries(evaluation.fields).filter(([header])=>group.match(normalize(header))).map(([header,value])=>({header,value,label:header.match(/\[(.*)\]/)?.[1]??header,options:group.options(normalize(header))})).sort((a,b)=>{const order=(s:string)=>{const m=s.match(/^(\d+|[a-z])[.)]/i);return m?(/^\d+$/.test(m[1])?Number(m[1]):m[1].toLowerCase().charCodeAt(0)):null;};const x=order(a.label),y=order(b.label);return x!==null&&y!==null?x-y:0;})}));
+ return FORM_GROUPS[scale].map((group,index)=>{
+  const source=Object.entries(evaluation.fields).filter(([header])=>group.match(normalize(header))).map(([header,value])=>({header,value,label:header.match(/\[([\s\S]*)\]/)?.[1]??header,options:group.options(normalize(header)),missingColumn:false,ambiguous:false}));
+  if(scale==='sf36'){
+   const section=SF36_SECTIONS[index];
+   const used=new Set<string>();
+   const questions=section.questions.map(item=>{
+    const letter=item.key.replace(/^\d+/,'');
+    const matches=source.filter(q=>letter?normalize(q.label).startsWith(`${letter})`)||normalize(q.label).startsWith(`${letter}.`):!q.header.includes('['));
+    matches.forEach(q=>used.add(q.header));
+    return {header:matches[0]?.header??`sf36-${item.key}`,label:item.label,value:matches.length===1?matches[0].value:matches.map(q=>q.value||'Não respondida').join(' / '),options:group.options(normalize(matches[0]?.header??'')),missingColumn:matches.length===0,ambiguous:matches.length>1};
+   });
+   return {...group,intro:section.intro,questions,extraQuestions:source.filter(q=>!used.has(q.header))};
+  }
+  return {...group,intro:'',extraQuestions:[],questions:source.sort((a,b)=>{const order=(s:string)=>{const m=s.match(/^(\d+|[a-z])[.)]/i);return m?(/^\d+$/.test(m[1])?Number(m[1]):m[1].toLowerCase().charCodeAt(0)):null;};const x=order(a.label),y=order(b.label);return x!==null&&y!==null?x-y:0;})};
+ });
 }
 // Keep original values visible. Only select a known option when its label/code
 // agrees with the form; unknown or contradictory values are never guessed.

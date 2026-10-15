@@ -41,12 +41,14 @@ export function parseSpreadsheet(data:ArrayBuffer|Uint8Array,sourceId='local',so
   });
  }
  if(!evaluations.length)throw new Error(warnings.join(' ')||'Nenhuma avaliação foi encontrada. Confira os cabeçalhos da planilha.');
- return {evaluations,warnings,sheetName:readSheets.join(', ')};
+ return {evaluations,warnings,warningsBySource:{[sourceId]:warnings},sheetName:readSheets.join(', ')};
 }
 // Reimporting the same source refreshes its rows, while distinct form exports coexist.
 export function mergeSpreadsheet(previous:SpreadsheetParseResult|null,next:SpreadsheetParseResult):SpreadsheetParseResult {
  const sources=new Set(next.evaluations.map(e=>e.sourceId));
- return {evaluations:[...(previous?.evaluations??[]).filter(e=>!sources.has(e.sourceId)),...next.evaluations],warnings:next.warnings,sheetName:next.sheetName};
+ const warningsBySource={...previous?.warningsBySource,...next.warningsBySource};
+ const evaluations=[...(previous?.evaluations??[]).filter(e=>!sources.has(e.sourceId)),...next.evaluations];
+ return {evaluations,warningsBySource,warnings:Object.values(warningsBySource).flat(),sheetName:Array.from(new Set(evaluations.map(e=>e.sheetName))).join(', ')};
 }
 export function groupPatients(evaluations:Evaluation[]):PatientGroup[]{
  const groups=new Map<string,PatientGroup>();

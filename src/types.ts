@@ -43,5 +43,6 @@ export interface PcsResult {
 export interface SpreadsheetParseResult {
   evaluations: Evaluation[];
   warnings: string[];
+  warningsBySource: Record<string, string[]>;
   sheetName: string;
 }

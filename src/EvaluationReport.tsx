@@ -1,5 +1,5 @@
 import { Evaluation, PatientGroup, PcsResult } from './types';
-import { PCS_RULES } from './services/pcs';
+import { PCS_RULES, PCS_TOTAL_READINGS } from './services/pcs';
 import { EvaluationDetails } from './EvaluationDetails';
 import { EvaluationPicker } from './EvaluationPicker';
 const scoreTone = (significant: boolean) => significant ? 'warning' : 'ok';
@@ -30,6 +30,22 @@ export function EvaluationReport({selectedPatient, selectedEvaluation, pcsResult
                   </div>
                 ) : pcsResult ? (
                   <>
+                    <section className="promis-section result-interpretation" aria-label="Interpretação dos resultados PCS">
+                     <div className="section-kicker">01 · Interpretação dos resultados</div>
+                     <div className={`total-card ${pcsResult.totalClassification}`}>
+                      <div><span className="eyebrow">Escore total PCS</span><div className="total-score">{pcsResult.total}<small>/52</small></div></div>
+                      <div className="total-interpretation"><span>Interpretação</span><strong>{pcsResult.totalLabel}</strong></div>
+                     </div>
+                     <p className="interpretation-reading">{PCS_TOTAL_READINGS[pcsResult.totalClassification]}</p>
+                     <div className="thresholds"><span>Total: 0–14 baixa</span><span>15–29 moderada</span><span>≥ 30 clinicamente relevante</span></div>
+                     <div className="interpretation-subscales">{[
+                      {label:'Ruminação',significant:pcsResult.ruminationSignificant,description:'Pensamentos intrusivos e repetitivos sobre a dor; incapacidade de desviar a atenção dela.'},
+                      {label:'Magnificação',significant:pcsResult.magnificationSignificant,description:'Ampliação da ameaça representada pela dor e antecipação de desfechos negativos.'},
+                      {label:'Desamparo',significant:pcsResult.helplessnessSignificant,description:'Sensação de incapacidade de lidar com a dor ou de influenciar seu curso.'},
+                     ].map(subscale=><div key={subscale.label}><h3>{subscale.label}<span className="status-badge">{subscale.significant?'Pontuação significativa':'Abaixo do ponto de corte'}</span></h3><p>{subscale.description}</p></div>)}</div>
+                    </section>
+                    <section className="promis-section">
+                    <div className="section-kicker">02 · Apuração das subescalas</div>
                     <div className="score-grid">
                       <ScoreCard
                         title="Ruminação"
@@ -51,23 +67,7 @@ export function EvaluationReport({selectedPatient, selectedEvaluation, pcsResult
                       />
                     </div>
 
-                    <div className={`total-card ${pcsResult.totalClassification}`}>
-                      <div>
-                        <span className="eyebrow">Escore total PCS</span>
-                        <div className="total-score">{pcsResult.total}<small>/52</small></div>
-                      </div>
-                      <div className="total-interpretation">
-                        <span>Interpretação</span>
-                        <strong>{pcsResult.totalLabel}</strong>
-                      </div>
-                    </div>
-
-                    <div className="thresholds">
-                      <span>Total: 0–14 baixa</span>
-                      <span>15–29 moderada</span>
-                      <span>≥ 30 clinicamente relevante</span>
-                    </div>
-
+                    </section>
                     <div className="actions-row no-print">
                       
                       <button className="button primary" onClick={() => window.print()}>
