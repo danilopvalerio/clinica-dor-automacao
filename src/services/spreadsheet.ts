@@ -11,21 +11,34 @@ const FIELD_ALIASES={
 };
 const findHeader=(headers:string[],aliases:string[])=>headers.find(h=>aliases.includes(normalize(h).replace(/^\d+[.)]\s*/,'')));
 const asText=(v:unknown)=>String(v??'').trim();
+// Google Forms occasionally stores the date with a General numeric Excel format.
+export function displayDate(value:unknown):string {
+ const raw=asText(value);
+ if (/^\d{5}(?:\.0+)?$/.test(raw)) {
+  const serial=Number(raw);
+  if (serial>30000&&serial<90000) {
+   const date=new Date(Date.UTC(1899,11,30)+serial*86400000);
+   return `${String(date.getUTCDate()).padStart(2,'0')}/${String(date.getUTCMonth()+1).padStart(2,'0')}/${date.getUTCFullYear()}`;
+  }
+ }
+ return raw;
+}
 function parsePcsValue(value:unknown):number|null {
  if(typeof value==='number')return Number.isInteger(value)&&value>=0&&value<=4?value:null;
  const match=asText(value).match(/^([0-4])(?:\s*[-–—:]\s*.*)?$/);
  return match?Number(match[1]):null;
 }
-export function parseSpreadsheet(data:ArrayBuffer|Uint8Array,sourceId='local',sourceLabel='Planilha'):SpreadsheetParseResult {
+export function parseSpreadsheet(data:ArrayBuffer|Uint8Array,sourceId='local',sourceLabel='Planilha',sourceKind:'auto'|'initial'='auto'):SpreadsheetParseResult {
  const workbook=XLSX.read(data,{type:'array',cellDates:true});
  const evaluations:Evaluation[]=[],warnings:string[]=[],readSheets:string[]=[];
  for(const sheetName of workbook.SheetNames){
   const rows=XLSX.utils.sheet_to_json<Record<string,unknown>>(workbook.Sheets[sheetName],{defval:'',raw:false,dateNF:'dd/mm/yyyy'});
   const headers=Object.keys(rows[0]??{});if(!headers.length)continue;
   const scales=Array.from(new Set(headers.map(fieldScale).filter((s):s is ScaleId=>!!s)));
-  if(!scales.length){warnings.push(`Aba “${sheetName}”: nenhum cabeçalho de escala reconhecido; aba ignorada.`);continue;}
+  if(!scales.length&&sourceKind!=='initial'){warnings.push(`Aba “${sheetName}”: nenhum cabeçalho de escala reconhecido; aba ignorada.`);continue;}
   const meta=Object.fromEntries(Object.entries(FIELD_ALIASES).map(([key,aliases])=>[key,findHeader(headers,aliases)]));
-  const missing=Object.entries({id:'Código/ID único do paciente',name:'Nome completo do paciente',date:'Data da avaliação',researcher:'Responsável pela coleta',moment:'Momento da avaliação'}).filter(([key])=>!meta[key]).map(([,label])=>label);
+  const required=sourceKind==='initial'?{id:'Código/ID único do paciente',name:'Nome completo do paciente',date:'Data da avaliação'}:{id:'Código/ID único do paciente',name:'Nome completo do paciente',date:'Data da avaliação',researcher:'Responsável pela coleta',moment:'Momento da avaliação'};
+  const missing=Object.entries(required).filter(([key])=>!meta[key]).map(([,label])=>label);
   if(missing.length){warnings.push(`Aba “${sheetName}”: colunas obrigatórias ausentes (${missing.join(', ')}); aba ignorada.`);continue;}
   readSheets.push(sheetName);
   const pcsHeaders=new Map<PcsItemNumber,string>();
@@ -37,7 +50,7 @@ export function parseSpreadsheet(data:ArrayBuffer|Uint8Array,sourceId='local',so
    for(let i=1;i<=13;i++){const item=i as PcsItemNumber,header=pcsHeaders.get(item);pcsResponses[item]=header?parsePcsValue(row[header]):null;pcsQuestions[item]=header?.match(/\[(.*)\]/)?.[1]??`Item ${i}`;if(scales.includes('pcs')&&pcsResponses[item]===null)errors.push(`Item PCS ${i}: resposta ausente ou inválida`);}
    if(!id)errors.push('Código/ID do paciente ausente');if(!name)errors.push('Nome do paciente ausente');
    if(errors.length)warnings.push(`${sheetName}, linha ${rowNumber}: ${errors.join('; ')}.`);
-   evaluations.push({rowNumber,recordKey:JSON.stringify([sourceId,sheetName,rowNumber]),sourceId,sourceLabel,sheetName,scales,id,name,date:asText(row[meta.date!]),researcher:asText(row[meta.researcher!]),moment:asText(row[meta.moment!]),timestamp:meta.timestamp?asText(row[meta.timestamp]):'',pcsResponses,pcsQuestions,errors,fields:Object.fromEntries(Object.entries(row).map(([k,v])=>[k,asText(v)]))});
+   evaluations.push({rowNumber,recordKey:JSON.stringify([sourceId,sheetName,rowNumber]),sourceId,sourceLabel,sheetName,scales,id,name,date:displayDate(row[meta.date!]),researcher:meta.researcher?asText(row[meta.researcher]):'',moment:meta.moment?asText(row[meta.moment]):'Avaliação inicial',timestamp:meta.timestamp?asText(row[meta.timestamp]):'',pcsResponses,pcsQuestions,errors,fields:Object.fromEntries(Object.entries(row).map(([k,v])=>[k,asText(v)]))});
   });
  }
  if(!evaluations.length)throw new Error(warnings.join(' ')||'Nenhuma avaliação foi encontrada. Confira os cabeçalhos da planilha.');

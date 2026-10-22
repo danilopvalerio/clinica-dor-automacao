@@ -1,11 +1,11 @@
 import react from '@vitejs/plugin-react';
-import { defineConfig, type Plugin } from 'vite';
+import { defineConfig, loadEnv, type Plugin } from 'vite';
 
 const SHEET_ID_PATTERN = /^[A-Za-z0-9_-]{20,}$/;
 const GID_PATTERN = /^\d+$/;
 const MAX_FILE_SIZE = 20 * 1024 * 1024;
 
-function googleSheetsDevProxy(): Plugin {
+function googleSheetsDevProxy(env: Record<string,string>): Plugin {
   return {
     name: 'google-sheets-dev-proxy',
     configureServer(server) {
@@ -22,15 +22,22 @@ function googleSheetsDevProxy(): Plugin {
         try {
           const chunks: Buffer[] = [];
           for await (const chunk of req) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-          const payload = JSON.parse(Buffer.concat(chunks).toString('utf8')) as { sheetId?: unknown; gid?: unknown };
-          const sheetId = typeof payload.sheetId === 'string' ? payload.sheetId.trim() : '';
-          const gid = typeof payload.gid === 'string' ? payload.gid.trim() : '';
-
+          const payload = JSON.parse(Buffer.concat(chunks).toString('utf8')) as { source?: unknown };
+          const names = { combined: 'SHEET_PCS_PROMIS_URL', sf36: 'SHEET_SF36_URL', initial: 'SHEET_INITIAL_URL' } as const;
+          const source = typeof payload.source === 'string' ? payload.source : '';
+          if (!(source in names)) {
+            res.statusCode = 400;res.setHeader('Content-Type', 'application/json; charset=utf-8');res.end(JSON.stringify({ error: 'Fonte não reconhecida.' }));return;
+          }
+          const configured = env[names[source as keyof typeof names]];
+          if (!configured) {
+            res.statusCode = 503;res.setHeader('Content-Type', 'application/json; charset=utf-8');res.end(JSON.stringify({ error: `Fonte ${source} não configurada no .env.` }));return;
+          }
+          const url = new URL(configured);
+          if (url.hostname !== 'docs.google.com') throw new Error('Origem inválida');
+          const sheetId = url.pathname.match(/^\/spreadsheets\/d\/([A-Za-z0-9_-]{20,})/)?.[1] || '';
+          const gid = url.searchParams.get('gid') || new URLSearchParams(url.hash.replace(/^#/, '')).get('gid') || '';
           if (!SHEET_ID_PATTERN.test(sheetId) || (gid && !GID_PATTERN.test(gid))) {
-            res.statusCode = 400;
-            res.setHeader('Content-Type', 'application/json; charset=utf-8');
-            res.end(JSON.stringify({ error: 'Link/identificador da planilha inválido.' }));
-            return;
+            res.statusCode = 400;res.setHeader('Content-Type', 'application/json; charset=utf-8');res.end(JSON.stringify({ error: 'Link configurado inválido.' }));return;
           }
 
           const exportUrl = new URL(`https://docs.google.com/spreadsheets/d/${sheetId}/export`);
@@ -73,9 +80,7 @@ function googleSheetsDevProxy(): Plugin {
   };
 }
 
-export default defineConfig({
-  plugins: [react(), googleSheetsDevProxy()],
-  server: {
-    port: 5173,
-  },
-});
+export default defineConfig(({mode}) => ({
+  plugins: [react(), googleSheetsDevProxy(loadEnv(mode,process.cwd(),''))],
+  server: { port: 5173 },
+}));

@@ -3,7 +3,7 @@ import { PCS_RULES, PCS_TOTAL_READINGS } from './services/pcs';
 import { EvaluationDetails } from './EvaluationDetails';
 import { EvaluationPicker } from './EvaluationPicker';
 const scoreTone = (significant: boolean) => significant ? 'warning' : 'ok';
-export function EvaluationReport({selectedPatient, selectedEvaluation, pcsResult, setSelectedEvaluationRow, detailed, onDetails}: {selectedPatient:PatientGroup;selectedEvaluation:Evaluation;pcsResult:PcsResult|null;setSelectedEvaluationRow:(row:string)=>void;detailed:boolean;onDetails:()=>void}) {
+export function EvaluationReport({selectedPatient, selectedEvaluation, pcsResult, setSelectedEvaluationRow, detailed, onDetails, onExport}: {selectedPatient:PatientGroup;selectedEvaluation:Evaluation;pcsResult:PcsResult|null;setSelectedEvaluationRow:(row:string)=>void;detailed:boolean;onDetails:()=>void;onExport:()=>void}) {
  return <section className="result-panel card print-report">
  <div className="print-only"><h1>Clínica da Dor — NUTES / UEPB · PCS</h1></div>
                 <div className="patient-header">
@@ -21,8 +21,6 @@ export function EvaluationReport({selectedPatient, selectedEvaluation, pcsResult
                   <div><span>Momento</span><strong>{selectedEvaluation.moment || '—'}</strong></div>
                   <div><span>Responsável</span><strong>{selectedEvaluation.researcher || '—'}</strong></div>
                 </div>
-
-                <p className="source-record">Registro: {selectedEvaluation.sourceLabel} · {selectedEvaluation.sheetName} · linha {selectedEvaluation.rowNumber}</p>
                 {selectedEvaluation.errors.length > 0 ? (
                   <div className="alert error result-error">
                     <strong>Não é possível calcular esta avaliação.</strong>
@@ -70,14 +68,14 @@ export function EvaluationReport({selectedPatient, selectedEvaluation, pcsResult
                     </section>
                     <div className="actions-row no-print">
                       
-                      <button className="button primary" onClick={() => window.print()}>
-                        Imprimir / salvar PDF
+                      <button className="button primary" onClick={onExport}>
+                        Exportar PDF · escolher conteúdo
                       </button>
                     </div>
                   </>
                 ) : null}
  {!detailed && <div className="actions-row no-print"><button className="button secondary" onClick={onDetails}>Ver detalhes e respostas</button></div>}
- {detailed && <EvaluationDetails evaluation={selectedEvaluation} result={pcsResult}/>}
+ {detailed && <EvaluationDetails evaluation={selectedEvaluation}/>}
  </section>;
 }
 function ScoreCard({

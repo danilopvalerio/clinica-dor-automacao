@@ -1,0 +1,58 @@
+[
+  {
+    "label": "Capacidade funcional",
+    "code": "CF",
+    "description": "Presença e extensão de limitações relacionadas à capacidade física.",
+    "low": "Muita limitação para realizar todas as atividades físicas, inclusive tomar banho ou vestir-se.",
+    "high": "Realiza todo tipo de atividade física, inclusive as mais vigorosas, sem limitações devidas à saúde."
+  },
+  {
+    "label": "Limitação por aspectos físicos",
+    "code": "AF",
+    "description": "Limitações no tipo e na quantidade de trabalho e quanto elas dificultam o trabalho e as atividades diárias.",
+    "low": "Problemas com o trabalho ou outras atividades diárias por causa da saúde física.",
+    "high": "Nenhum problema com o trabalho ou outras atividades diárias por causa da saúde física, nas últimas 4 semanas."
+  },
+  {
+    "label": "Dor",
+    "code": "Dor",
+    "description": "Intensidade da dor e sua extensão ou interferência nas atividades de vida diária.",
+    "low": "Dor muito intensa e extremamente limitante.",
+    "high": "Ausência de dor ou de limitações por causa da dor, nas últimas 4 semanas."
+  },
+  {
+    "label": "Estado geral de saúde",
+    "code": "EGS",
+    "description": "Percepção geral da própria saúde.",
+    "low": "Acredita que sua saúde é ruim e que tende a piorar.",
+    "high": "Acredita que sua saúde é excelente."
+  },
+  {
+    "label": "Vitalidade",
+    "code": "VT",
+    "description": "Nível de energia e de fadiga.",
+    "low": "Sente-se cansado e esgotado o tempo todo.",
+    "high": "Sente-se cheio de vigor e energia o tempo todo, nas últimas 4 semanas."
+  },
+  {
+    "label": "Aspectos sociais",
+    "code": "AS",
+    "description": "Integração do indivíduo em atividades sociais e quanto ela foi afetada por problemas de saúde.",
+    "low": "Interferência extrema e frequente nas atividades sociais normais por problemas físicos e emocionais.",
+    "high": "Realiza atividades sociais normais sem interferência de problemas físicos ou emocionais, nas últimas 4 semanas."
+  },
+  {
+    "label": "Limitação por aspectos emocionais",
+    "code": "AE",
+    "description": "Limitações no trabalho e nas atividades diárias por problemas emocionais.",
+    "low": "Problemas com o trabalho ou outras atividades diárias por causa de problemas emocionais.",
+    "high": "Nenhum problema com o trabalho ou outras atividades diárias por causa de problemas emocionais, nas últimas 4 semanas."
+  },
+  {
+    "label": "Saúde mental",
+    "code": "SM",
+    "description": "Ansiedade, depressão, alterações do comportamento ou descontrole emocional e bem-estar psicológico.",
+    "low": "Sentimentos de nervosismo e depressão o tempo todo.",
+    "high": "Sente-se em paz, feliz e calmo o tempo todo, nas últimas 4 semanas."
+  }
+]

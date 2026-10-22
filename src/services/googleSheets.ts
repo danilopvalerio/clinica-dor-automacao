@@ -31,8 +31,7 @@ export function parseGoogleSheetsUrl(value: string): GoogleSheetTarget {
   return { sheetId, gid };
 }
 
-export async function downloadGoogleSheet(url: string): Promise<ArrayBuffer> {
-  const target = parseGoogleSheetsUrl(url);
+export async function downloadGoogleSheet(source: 'combined' | 'sf36' | 'initial'): Promise<ArrayBuffer> {
 
   const response = await fetch('/api/sheet', {
     method: 'POST',
@@ -41,7 +40,7 @@ export async function downloadGoogleSheet(url: string): Promise<ArrayBuffer> {
       Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/json',
     },
     cache: 'no-store',
-    body: JSON.stringify(target),
+    body: JSON.stringify({ source }),
   });
 
   if (!response.ok) {

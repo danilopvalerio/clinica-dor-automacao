@@ -3,8 +3,7 @@ const GID_PATTERN = /^\d+$/;
 const MAX_FILE_SIZE = 20 * 1024 * 1024;
 
 interface SheetRequestBody {
-  sheetId?: unknown;
-  gid?: unknown;
+  source?: unknown;
 }
 
 export async function POST(request: Request) {
@@ -15,16 +14,21 @@ export async function POST(request: Request) {
     return jsonError('Requisição inválida.', 400);
   }
 
-  const sheetId = typeof body.sheetId === 'string' ? body.sheetId.trim() : '';
-  const gid = typeof body.gid === 'string' ? body.gid.trim() : '';
-
-  if (!SHEET_ID_PATTERN.test(sheetId)) {
-    return jsonError('ID da planilha inválido.', 400);
-  }
-
-  if (gid && !GID_PATTERN.test(gid)) {
-    return jsonError('Identificador da aba (gid) inválido.', 400);
-  }
+  const names = {
+    combined: 'SHEET_PCS_PROMIS_URL',
+    sf36: 'SHEET_SF36_URL',
+    initial: 'SHEET_INITIAL_URL',
+  } as const;
+  const source = typeof body.source === 'string' ? body.source : '';
+  if (!(source in names)) return jsonError('Fonte não reconhecida.', 400);
+  const configured = process.env[names[source as keyof typeof names]];
+  if (!configured) return jsonError(`Fonte ${source} não configurada no ambiente do servidor.`, 503);
+  let url:URL;
+  try{url = new URL(configured);}catch{return jsonError('Link da fonte inválido no servidor.', 500);}
+  if (url.hostname !== 'docs.google.com') return jsonError('O link da fonte deve ser do Google Sheets.', 500);
+  const sheetId=url.pathname.match(/^\/spreadsheets\/d\/([A-Za-z0-9_-]{20,})/)?.[1]||'';
+  const gid=url.searchParams.get('gid')||new URLSearchParams(url.hash.replace(/^#/, '')).get('gid')||'';
+  if (!SHEET_ID_PATTERN.test(sheetId) || (gid && !GID_PATTERN.test(gid))) return jsonError('Link ou aba configurados incorretamente.', 500);
 
   const exportUrl = new URL(`https://docs.google.com/spreadsheets/d/${sheetId}/export`);
   exportUrl.searchParams.set('format', 'xlsx');

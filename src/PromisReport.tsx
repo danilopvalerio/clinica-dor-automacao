@@ -15,10 +15,12 @@ export function PromisReport({
   selectedPatient,
   selectedEvaluation,
   setSelectedEvaluationRow,
+  onExport,
 }: {
   selectedPatient: PatientGroup;
   selectedEvaluation: Evaluation;
   setSelectedEvaluationRow: (row: string) => void;
+  onExport:()=>void;
 }) {
   const result = calculatePromis29(selectedEvaluation);
   return (
@@ -43,7 +45,6 @@ export function PromisReport({
         <div><span>Momento</span><strong>{selectedEvaluation.moment || '—'}</strong></div>
         <div><span>Responsável</span><strong>{selectedEvaluation.researcher || '—'}</strong></div>
       </div>
-      <p className="source-record">Registro: {selectedEvaluation.sourceLabel} · {selectedEvaluation.sheetName} · linha {selectedEvaluation.rowNumber}</p>
 
       <section className="promis-title-block">
         <span className="eyebrow">Instrumento de autorrelato</span>
@@ -65,48 +66,23 @@ export function PromisReport({
       </section>
 
       <section className="promis-section">
-        <div className="section-kicker">02 · Apuração por domínio</div>
-        <div className="promis-table-wrap" role="region" aria-label="Escores PROMIS-29" tabIndex={0}>
-          <table className="promis-table">
-            <thead><tr><th>Domínio</th><th>Direção</th><th>Itens respondidos</th><th>Escore bruto</th><th>T-score</th><th>Classificação</th></tr></thead>
-            <tbody>
-              {result.domains.map((domain) => <tr key={domain.id}>
-                <th scope="row">{domain.label}</th>
-                <td>{domain.direction === 'higherBetter' ? 'Maior = melhor' : 'Maior = pior'}</td>
-                <td>{domain.answered}/{domain.expected}{domain.estimated ? ' · estimado' : ''}</td>
-                <td className="promis-number">{formatScore(domain.rawScore)}<small>/20</small></td>
-                <td className="promis-number">{formatScore(domain.tScore)}</td>
-                <td><span className={`promis-status ${domain.classification}`}>{classificationLabel(domain.classification)}</span></td>
-              </tr>)}
-            </tbody>
-          </table>
-        </div>
-        <div className="promis-summary-line">
-          <span>Total bruto para registro interno: <strong>{formatScore(result.totalRaw)}{result.totalRaw === null ? '' : '/150'}</strong></span>
-          <span>Percentual de impacto: <strong>{result.impactPercent === null ? '—' : `${formatScore(result.impactPercent)}%`}</strong></span>
-        </div>
-        <p className="promis-note">A interpretação clínica é feita separadamente por domínio. O total bruto e o percentual de impacto ficam disponíveis apenas para registro do serviço.</p>
-      </section>
-
-      <section className="promis-section">
-        <div className="section-kicker">03 · Intensidade da dor</div>
+        <div className="section-kicker">02 · Intensidade da dor</div>
         <PainAxis value={result.painIntensity} />
       </section>
 
       <section className="promis-section">
-        <div className="section-kicker">04 · Critérios de interpretação dos T-scores</div>
+        <div className="section-kicker">03 · Critérios de interpretação dos T-scores</div>
         <div className="interpretation-columns">
           <InterpretationColumn title="Sintomas" subtitle="Ansiedade, depressão, fadiga, sono e interferência da dor" rows={PROMIS_INTERPRETATION.symptoms} />
           <InterpretationColumn title="Função e participação" subtitle="Função física e participação social" rows={PROMIS_INTERPRETATION.function} />
         </div>
       </section>
 
-      <section className="promis-section response-section">
-        <div className="section-kicker">05 · Respostas registradas</div>
+      <details className="report-disclosure response-section"><summary>Respostas registradas</summary>
         <FormResponses evaluation={selectedEvaluation} scale="promis" />
-      </section>
+      </details>
 
-      <div className="actions-row no-print"><button className="button primary" onClick={() => window.print()}>Imprimir PROMIS-29 / salvar PDF</button></div>
+      <div className="actions-row no-print"><button className="button primary" onClick={onExport}>Exportar PDF · escolher conteúdo</button></div>
     </section>
   );
 }
