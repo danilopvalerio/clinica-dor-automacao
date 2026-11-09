@@ -85,7 +85,7 @@ export function EvaluationDetails({ evaluation }: { evaluation: Evaluation }) {
       <details className="original-fields no-print">
         <summary>Consultar todos os campos originais da planilha</summary>
         <dl className="field-grid raw-fields">
-          {Object.entries(evaluation.fields).map(([field, value]) => (
+          {Object.entries(evaluation.originalFields ?? evaluation.fields).map(([field, value]) => (
             <div key={field}>
               <dt>{field}</dt>
               <dd>{value || "Não informado"}</dd>

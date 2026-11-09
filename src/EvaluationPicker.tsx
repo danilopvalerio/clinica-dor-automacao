@@ -1,6 +1,5 @@
 import { Evaluation } from "./types";
-export const evaluationLabel = (e: Evaluation) =>
-  `${e.date || "Sem data"} · ${e.moment || "Avaliação inicial"}`;
+import { evaluationLabel } from "./services/forms";
 export function EvaluationPicker({
   evaluations,
   selected,

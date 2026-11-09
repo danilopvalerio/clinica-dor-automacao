@@ -1,15 +1,15 @@
 import type { Evaluation, PatientGroup } from "./types";
 import { displayDate } from "./services/spreadsheet";
 import { EvaluationPicker } from "./EvaluationPicker";
-import { ScaleId, SCALE_NAMES } from "./services/forms";
+import { normalize, ScaleId, SCALE_NAMES } from "./services/forms";
 
 const sections = [
-  { title: "Dados pessoais e sociodemográficos", start: 5, end: 10 },
-  { title: "Queixa principal e histórico de saúde", start: 11, end: 16 },
-  { title: "Hábitos e estilo de vida", start: 17, end: 23 },
-  { title: "Medicamentos e caracterização da dor", start: 24, end: 33 },
-  { title: "Características e sintomas associados à dor", start: 34, end: 41 },
-  { title: "Medidas e sinais vitais", start: 42, end: 48 },
+  { title: "Dados pessoais e sociodemográficos", start: '' },
+  { title: "Queixa principal e histórico de saúde", start: 'qual e o principal motivo' },
+  { title: "Hábitos e estilo de vida", start: 'de forma geral, o(a) senhor(a) bebe' },
+  { title: "Medicamentos e caracterização da dor", start: 'quantos remedios' },
+  { title: "Características e sintomas associados à dor", start: 'voce sente uma sensacao de queimacao' },
+  { title: "Medidas e sinais vitais", start: 'peso aferido' },
 ];
 const ignore =
   /^(carimbo de data\/hora|código\/id único do paciente|data da avaliação|extensionista\/pesquisador\(a\) responsável pela coleta|nome completo do paciente)$/i;
@@ -22,7 +22,7 @@ export function PatientBasics({
   initial?: Evaluation;
 }) {
   const entries = Object.entries(initial?.fields ?? {});
-  const get = (index: number) => entries[index - 1]?.[1]?.trim() || "—";
+  const get = (prefix: string) => entries.find(([header]) => normalize(header).startsWith(prefix))?.[1]?.trim() || "—";
   return (
     <div className="patient-basics">
       <div>
@@ -31,11 +31,11 @@ export function PatientBasics({
       </div>
       <div>
         <span>Gênero</span>
-        <strong>{initial ? get(6) : "—"}</strong>
+        <strong>{get('genero (confirmar/observar)')}</strong>
       </div>
       <div>
         <span>Município de residência</span>
-        <strong>{initial ? get(10) : "—"}</strong>
+        <strong>{get('em que cidade e estado o(a) senhor(a) mora atualmente')}</strong>
       </div>
       <div>
         <span>Data da avaliação inicial</span>
@@ -46,6 +46,13 @@ export function PatientBasics({
 }
 export function InitialRecord({ evaluation }: { evaluation: Evaluation }) {
   const entries = Object.entries(evaluation.fields);
+  const grouped = sections.map(section => ({ ...section, data: [] as Array<[string, string]> }));
+  let current = 0;
+  for (const [question, value] of entries) {
+    const next = sections.findIndex(section => section.start && normalize(question).startsWith(section.start));
+    if (next >= 0) current = next;
+    if (!ignore.test(question)) grouped[current].data.push([question, value]);
+  }
   return (
     <div className="initial-record">
       <div className="metadata-grid">
@@ -58,10 +65,8 @@ export function InitialRecord({ evaluation }: { evaluation: Evaluation }) {
           <strong>{evaluation.researcher || "—"}</strong>
         </div>
       </div>
-      {sections.map((section) => {
-        const data = entries
-          .slice(section.start - 1, section.end)
-          .filter(([question]) => !ignore.test(question));
+      {grouped.map((section) => {
+        const data = section.data;
         return (
           <section key={section.title} className="record-section">
             <h3>{section.title}</h3>
@@ -69,7 +74,7 @@ export function InitialRecord({ evaluation }: { evaluation: Evaluation }) {
               {data.map(([question, value]) => (
                 <div key={question}>
                   <dt>{question}</dt>
-                  <dd>{/^\d{5}$/.test(value) ? displayDate(value) : value || "Não informado"}</dd>
+                  <dd>{normalize(question).includes('nascimento') ? displayDate(value) || 'Não informado' : value || "Não informado"}</dd>
                 </div>
               ))}
             </dl>

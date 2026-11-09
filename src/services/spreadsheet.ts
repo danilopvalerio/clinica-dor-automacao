@@ -1,6 +1,8 @@
 import * as XLSX from 'xlsx';
 import { Evaluation, PatientGroup, PcsItemNumber, SpreadsheetParseResult } from '../types';
-import { fieldScale, normalize, ScaleId } from './forms';
+import { evaluationDescription, evaluationPhase, fieldScale, normalize, ScaleId } from './forms';
+import { readEvaluationDate } from './evaluationDates';
+import { SOURCE_DATE_ORDERS } from './sources';
 const FIELD_ALIASES={
  timestamp:['timestamp','carimbo de data/hora','carimbo de data e hora'],
  id:['codigo/id unico do paciente','codigo do paciente','id do paciente','cpf do paciente'],
@@ -10,8 +12,13 @@ const FIELD_ALIASES={
  moment:['momento da avaliacao'],
 };
 const findHeader=(headers:string[],aliases:string[])=>headers.find(h=>aliases.includes(normalize(h).replace(/^\d+[.)]\s*/,'')));
+// These questions identify both versions of the initial form. Birth date and
+// respiratory rate are optional; the original questions retain their meaning.
+const isInitialAssessment=(headers:string[])=>[
+ 'qual e o principal motivo que trouxe o(a) senhor(a) ate aqui hoje',
+ 'conte como essa queixa comecou e como evoluiu ate hoje. ha casos parecidos na familia',
+].every(question=>headers.some(header=>normalize(header).replace(/[?.]+$/,'')===question));
 const asText=(v:unknown)=>String(v??'').trim();
-// Google Forms occasionally stores the date with a General numeric Excel format.
 export function displayDate(value:unknown):string {
  const raw=asText(value);
  if (/^\d{5}(?:\.0+)?$/.test(raw)) {
@@ -29,28 +36,40 @@ function parsePcsValue(value:unknown):number|null {
  return match?Number(match[1]):null;
 }
 export function parseSpreadsheet(data:ArrayBuffer|Uint8Array,sourceId='local',sourceLabel='Planilha',sourceKind:'auto'|'initial'='auto'):SpreadsheetParseResult {
- const workbook=XLSX.read(data,{type:'array',cellDates:true});
+ const workbook=XLSX.read(data,{type:'array',cellDates:false,cellNF:true,cellText:true});
  const evaluations:Evaluation[]=[],warnings:string[]=[],readSheets:string[]=[];
  for(const sheetName of workbook.SheetNames){
-  const rows=XLSX.utils.sheet_to_json<Record<string,unknown>>(workbook.Sheets[sheetName],{defval:'',raw:false,dateNF:'dd/mm/yyyy'});
+  const sheet=workbook.Sheets[sheetName];
+  const rows=XLSX.utils.sheet_to_json<Record<string,unknown>>(sheet,{defval:'',raw:false});
   const headers=Object.keys(rows[0]??{});if(!headers.length)continue;
   const scales=Array.from(new Set(headers.map(fieldScale).filter((s):s is ScaleId=>!!s)));
-  if(!scales.length&&sourceKind!=='initial'){warnings.push(`Aba “${sheetName}”: nenhum cabeçalho de escala reconhecido; aba ignorada.`);continue;}
+  const kind:Evaluation['kind']=!scales.length&&(sourceKind==='initial'||isInitialAssessment(headers))?'initial':'scales';
+  if(!scales.length&&kind!=='initial'){warnings.push(`Aba “${sheetName}”: nenhum cabeçalho de escala ou avaliação inicial reconhecido; aba ignorada.`);continue;}
   const meta=Object.fromEntries(Object.entries(FIELD_ALIASES).map(([key,aliases])=>[key,findHeader(headers,aliases)]));
-  const required=sourceKind==='initial'?{id:'Código/ID único do paciente',name:'Nome completo do paciente',date:'Data da avaliação'}:{id:'Código/ID único do paciente',name:'Nome completo do paciente',date:'Data da avaliação',researcher:'Responsável pela coleta',moment:'Momento da avaliação'};
+  const required:Record<string,string>={id:'Código/ID único do paciente',name:'Nome completo do paciente',date:'Data da avaliação'};
+  if(kind==='scales'){required.researcher='Responsável pela coleta';required.moment='Momento da avaliação';}
   const missing=Object.entries(required).filter(([key])=>!meta[key]).map(([,label])=>label);
   if(missing.length){warnings.push(`Aba “${sheetName}”: colunas obrigatórias ausentes (${missing.join(', ')}); aba ignorada.`);continue;}
   readSheets.push(sheetName);
+  const dateOrder=SOURCE_DATE_ORDERS[kind==='initial'?'initial':scales.includes('sf36')?'sf36':'combined'];
+  const range=XLSX.utils.decode_range(sheet['!ref']??'A1');
+  const dateColumn=Array.from({length:range.e.c-range.s.c+1},(_,index)=>range.s.c+index).find(c=>sheet[XLSX.utils.encode_cell({r:range.s.r,c})]?.v===meta.date);
   const pcsHeaders=new Map<PcsItemNumber,string>();
   for(const h of headers){if(fieldScale(h)!=='pcs')continue;const item=Number(h.match(/\[(\d{1,2})\./)?.[1]);if(item>=1&&item<=13)pcsHeaders.set(item as PcsItemNumber,h);}
   rows.forEach((row,index)=>{
    if(!Object.values(row).some(v=>asText(v)))return;
    const rowNumber=typeof row.__rowNum__==='number'?row.__rowNum__+1:index+2, id=asText(row[meta.id!]),name=asText(row[meta.name!]);
+   const dateCell=dateColumn===undefined?undefined:sheet[XLSX.utils.encode_cell({r:rowNumber-1,c:dateColumn})];
+   const evaluationDate=readEvaluationDate(dateCell,asText(row[meta.date!]),dateOrder,workbook.Workbook?.WBProps?.date1904);
+   const originalFields=Object.fromEntries(Object.entries(row).map(([key,value])=>[key,asText(value)]));
+   // All application consumers, including fields-based filters and the patient
+   // profile, use the same normalized date. Retain the export for consultation.
+   const fields={...originalFields,[meta.date!]:evaluationDate.date};
    const errors:string[]=[],pcsResponses={} as Evaluation['pcsResponses'],pcsQuestions={} as Evaluation['pcsQuestions'];
    for(let i=1;i<=13;i++){const item=i as PcsItemNumber,header=pcsHeaders.get(item);pcsResponses[item]=header?parsePcsValue(row[header]):null;pcsQuestions[item]=header?.match(/\[(.*)\]/)?.[1]??`Item ${i}`;if(scales.includes('pcs')&&pcsResponses[item]===null)errors.push(`Item PCS ${i}: resposta ausente ou inválida`);}
    if(!id)errors.push('Código/ID do paciente ausente');if(!name)errors.push('Nome do paciente ausente');
    if(errors.length)warnings.push(`${sheetName}, linha ${rowNumber}: ${errors.join('; ')}.`);
-   evaluations.push({rowNumber,recordKey:JSON.stringify([sourceId,sheetName,rowNumber]),sourceId,sourceLabel,sheetName,scales,id,name,date:displayDate(row[meta.date!]),researcher:meta.researcher?asText(row[meta.researcher]):'',moment:meta.moment?asText(row[meta.moment]):'Avaliação inicial',timestamp:meta.timestamp?asText(row[meta.timestamp]):'',pcsResponses,pcsQuestions,errors,fields:Object.fromEntries(Object.entries(row).map(([k,v])=>[k,asText(v)]))});
+   evaluations.push({kind,rowNumber,recordKey:JSON.stringify([sourceId,sheetName,rowNumber]),sourceId,sourceLabel,sheetName,scales,id,name,...evaluationDate,researcher:meta.researcher?asText(row[meta.researcher]):'',moment:meta.moment?asText(row[meta.moment]):'',timestamp:meta.timestamp?asText(row[meta.timestamp]):'',pcsResponses,pcsQuestions,errors,fields,originalFields});
   });
  }
  if(!evaluations.length)throw new Error(warnings.join(' ')||'Nenhuma avaliação foi encontrada. Confira os cabeçalhos da planilha.');
@@ -69,5 +88,11 @@ export function groupPatients(evaluations:Evaluation[]):PatientGroup[]{
   const key=e.id?`id:${normalize(e.id)}`:e.name?`name:${normalize(e.name)}`:`record:${e.recordKey}`;
   const p=groups.get(key);if(p){p.evaluations.push(e);if(!p.name&&e.name)p.name=e.name;}else groups.set(key,{key,id:e.id,name:e.name,evaluations:[e]});
  }
- return Array.from(groups.values()).map(p=>({...p,evaluations:[...p.evaluations].reverse()})).sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
+ return Array.from(groups.values()).map(p=>({...p,evaluations:[...p.evaluations].reverse().sort((a,b)=>{
+  const phase=evaluationPhase(a)-evaluationPhase(b);
+  if(phase)return phase;
+  const first=a.dateValue??Number.POSITIVE_INFINITY,second=b.dateValue??Number.POSITIVE_INFINITY;
+  if(first!==second)return first<second?-1:1;
+  return evaluationDescription(a).localeCompare(evaluationDescription(b),'pt-BR',{sensitivity:'base'});
+ })})).sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
 }

@@ -34,6 +34,11 @@ Os links devem permitir **exportação XLSX pelo Google Sheets** sem interação
 
 Ao entrar, o frontend requisita as três fontes usando apenas um identificador de fonte (`combined`, `sf36`, `initial`); os links ficam no servidor e não são enviados ao JavaScript. O proxy de desenvolvimento está em `vite.config.ts`.
 
+Para compatibilidade com a configuração anterior, o servidor também aceita
+`VITE_COMBINED_SHEET_URL`, `VITE_SF36_SHEET_URL` e `VITE_INITIAL_SHEET_URL`.
+As variáveis `SHEET_*` têm prioridade. O `.env` existente não precisa ser alterado
+para continuar funcionando; o modelo `.env.example` usa os nomes do servidor.
+
 Há uma área recolhível **Importar XLSX local para testes** na página inicial. Essa opção funciona sem Google Sheets e lê os arquivos apenas em memória. Não há banco de dados; os registros são recarregados das fontes a cada abertura/atualização da página.
 
 ## Planilhas e associação de pacientes
@@ -45,12 +50,34 @@ Há uma área recolhível **Importar XLSX local para testes** na página inicial
 
 As fontes são associadas pelo campo **Código/ID único do paciente**. Na falta do ID, o agrupamento usa o nome normalizado; nomes divergentes entre arquivos sem um ID comum podem resultar em fichas separadas. Cada linha continua sendo uma avaliação distinta. IDs e respostas não são modificados.
 
+- A avaliação inicial aceita os cabeçalhos antigos e novos, incluindo nascimento
+  no formato novo e frequência respiratória no antigo. A ficha reconhece gênero,
+  residência e grupos de perguntas por cabeçalho, sem depender de índices de coluna.
+- SF-36 aceita as versões com e sem a coluna “Pontuação”.
+- Datas em texto de avaliação inicial e SF-36 são lidas como **dia/mês/ano**.
+  As datas numéricas dessas duas fontes preservam o dia armazenado no Excel.
+  PCS/PROMIS-29 aplica a leitura **mês/dia/ano** ao valor recebido na origem.
+  A importação padroniza os campos usados pelo aplicativo em **dia/mês/ano**,
+  mantendo os valores recebidos em `originalFields` para consulta.
+- A lista prioriza avaliações iniciais, depois acompanhamentos e reavaliações
+  finais. Dentro do momento, ordena por data crescente e texto de A a Z.
+  Linhas repetidas permanecem independentes. Datas ausentes ou inválidas vão
+  para o fim do respectivo momento.
+- As divisórias duplicadas entre questionários e grupos de respostas foram
+  reduzidas a uma linha, sem alterar os cálculos.
+
 ## Cuidados com dados clínicos
 
 **A aplicação não possui autenticação ou autorização. Não publique um deployment com dados reais de pacientes acessível pela internet sem implantar controles de acesso e proteção de dados.** As variáveis no servidor impedem a exposição direta dos URLs no bundle, mas **não protegem** a rota `/api/sheet` contra usuários não autenticados. Para uso em produção, implemente autenticação, autorização por perfil, logs de auditoria e políticas adequadas à LGPD. Os arquivos XLSX reais enviados para desenvolver esta versão **não estão incluídos** no projeto entregue.
 
 ## Validação desta versão
 
-A estrutura das quatro planilhas foi inspecionada. Em um teste de importação usando cabeçalhos e linhas das planilhas fornecidas, as três fontes produziram **13 registros de avaliação inicial, 10 de PCS/PROMIS-29 e 13 de SF-36**, associados em 13 grupos de pacientes, com 8 deles tendo dados clínicos iniciais e avaliações de escala. Foram exercitados os cálculos das três escalas e realizada uma verificação estática da sintaxe TypeScript/JSX e dos tipos com declarações auxiliares.
+A suíte usa respostas fictícias e os seis conjuntos de cabeçalhos antigos/novos
+em `tests/fixtures/spreadsheet-headers.json`, sem respostas de pacientes.
+Os testes cobrem importação das três fontes, regressão de PCS/PROMIS/SF-36,
+datas específicas por origem, registros repetidos, ordenação, configuração do
+servidor, ficha clínica e apresentação dos domínios SF-36.
 
-**Limitação do ambiente de entrega:** não foi possível executar o `npm ci`, os testes automatizados oficiais nem a compilação de produção nesta sessão, porque as dependências npm não puderam ser baixadas (falha de resolução de rede). O projeto inclui os testes adaptados para o novo formato visual e um teste adicional de importação da avaliação inicial; execute `npm ci && npm test && npm run build` em um ambiente com acesso ao registro npm antes de publicar.
+Execute `npm test` e `npm run build` antes de publicar. No ambiente Windows com
+restrição ao carregador padrão de configuração do Vite, a compilação pode ser
+executada com `npm run build -- --configLoader runner`.

@@ -1,5 +1,6 @@
 import react from '@vitejs/plugin-react';
 import { defineConfig, loadEnv, type Plugin } from 'vite';
+import { configuredSourceUrl, SHEET_ENV_NAMES } from './server/sheetSources';
 
 const SHEET_ID_PATTERN = /^[A-Za-z0-9_-]{20,}$/;
 const GID_PATTERN = /^\d+$/;
@@ -23,12 +24,11 @@ function googleSheetsDevProxy(env: Record<string,string>): Plugin {
           const chunks: Buffer[] = [];
           for await (const chunk of req) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
           const payload = JSON.parse(Buffer.concat(chunks).toString('utf8')) as { source?: unknown };
-          const names = { combined: 'SHEET_PCS_PROMIS_URL', sf36: 'SHEET_SF36_URL', initial: 'SHEET_INITIAL_URL' } as const;
           const source = typeof payload.source === 'string' ? payload.source : '';
-          if (!(source in names)) {
+          if (!Object.hasOwn(SHEET_ENV_NAMES, source)) {
             res.statusCode = 400;res.setHeader('Content-Type', 'application/json; charset=utf-8');res.end(JSON.stringify({ error: 'Fonte não reconhecida.' }));return;
           }
-          const configured = env[names[source as keyof typeof names]];
+          const configured = configuredSourceUrl(env, source as keyof typeof SHEET_ENV_NAMES);
           if (!configured) {
             res.statusCode = 503;res.setHeader('Content-Type', 'application/json; charset=utf-8');res.end(JSON.stringify({ error: `Fonte ${source} não configurada no .env.` }));return;
           }

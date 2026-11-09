@@ -1382,6 +1382,23 @@ tbody th {
   border: 0;
 }
 
+/* Keep one divider between adjacent report sections and question groups. */
+.questionnaire:has(+ .report-section) > .question-row:last-child,
+.organized-form > .form-section:has(+ .form-section) > .form-question:last-child,
+.report-section:has(+ .report-section) > .table-scroll:last-child > table > tbody > tr:last-child > :is(th, td) {
+  border-bottom: 0;
+}
+
+.organized-form > .form-nav + .form-section {
+  border-top: 0;
+}
+
+@media print {
+  .organized-form > .form-nav + .form-section {
+    border-top: 1px solid var(--line);
+  }
+}
+
 /* Interpretation precedes calculations and questionnaires in all reports. */
 .result-interpretation .total-card {
   margin-top: 0;

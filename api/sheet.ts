@@ -1,3 +1,5 @@
+import { configuredSourceUrl, SHEET_ENV_NAMES } from '../server/sheetSources';
+
 const SHEET_ID_PATTERN = /^[A-Za-z0-9_-]{20,}$/;
 const GID_PATTERN = /^\d+$/;
 const MAX_FILE_SIZE = 20 * 1024 * 1024;
@@ -14,14 +16,9 @@ export async function POST(request: Request) {
     return jsonError('Requisição inválida.', 400);
   }
 
-  const names = {
-    combined: 'SHEET_PCS_PROMIS_URL',
-    sf36: 'SHEET_SF36_URL',
-    initial: 'SHEET_INITIAL_URL',
-  } as const;
   const source = typeof body.source === 'string' ? body.source : '';
-  if (!(source in names)) return jsonError('Fonte não reconhecida.', 400);
-  const configured = process.env[names[source as keyof typeof names]];
+  if (!Object.hasOwn(SHEET_ENV_NAMES, source)) return jsonError('Fonte não reconhecida.', 400);
+  const configured = configuredSourceUrl(process.env, source as keyof typeof SHEET_ENV_NAMES);
   if (!configured) return jsonError(`Fonte ${source} não configurada no ambiente do servidor.`, 503);
   let url:URL;
   try{url = new URL(configured);}catch{return jsonError('Link da fonte inválido no servidor.', 500);}

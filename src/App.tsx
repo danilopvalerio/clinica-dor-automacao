@@ -1,5 +1,5 @@
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
-import { downloadGoogleSheet } from "./services/googleSheets";
+import { syncSources } from "./services/syncSources";
 import { calculatePcs } from "./services/pcs";
 import { groupPatients, mergeSpreadsheet, parseSpreadsheet } from "./services/spreadsheet";
 import { normalize, ScaleId, SCALE_NAMES } from "./services/forms";
@@ -100,19 +100,11 @@ function App() {
     setLoading((prev) => [...prev.filter((k) => k !== kind), kind]);
     setErrors((prev) => ({ ...prev, [kind]: "" }));
     try {
-      const parsed = parseSpreadsheet(
-        await downloadGoogleSheet(kind),
-        `google:${kind}`,
-        SOURCE_LABELS[kind],
-        kind === "initial" ? "initial" : "auto",
+      await syncSources(
+        [kind],
+        parsed => setData(prev => mergeSpreadsheet(prev, parsed)),
+        (source, message) => setErrors(prev => ({ ...prev, [source]: message })),
       );
-      validateSource(parsed, kind);
-      setData((prev) => mergeSpreadsheet(prev, parsed));
-    } catch (err) {
-      setErrors((prev) => ({
-        ...prev,
-        [kind]: err instanceof Error ? err.message : "Falha ao sincronizar planilha.",
-      }));
     } finally {
       setLoading((prev) => prev.filter((k) => k !== kind));
     }
@@ -300,6 +292,14 @@ function App() {
                         </div>
                       );
                     })}
+                    <details className="report-disclosure no-print">
+                      <summary>Importar XLSX local para testes</summary>
+                      {kinds.map(kind => <div className="source-status-row" key={kind}>
+                        <label className="field-label">{SOURCE_LABELS[kind]}
+                          <input type="file" accept=".xlsx,.xls" multiple disabled={loading.includes(kind)} onChange={event => void localFile(event, kind)} />
+                        </label>
+                      </div>)}
+                    </details>
                   </section>
                   <div className="quick-grid">
                     <button className="quick-card" onClick={() => navigate({ view: "patients" })}>
@@ -477,11 +477,6 @@ function App() {
               ) : (
                 empty
               ))}
-            <footer className="clinical-note">
-              A ferramenta organiza registros e calcula escores de PCS, PROMIS-29 e SF-36. A
-              interpretação deve ser realizada por profissionais em conjunto com a avaliação
-              clínica.
-            </footer>
           </main>
         </div>
       </div>

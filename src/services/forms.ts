@@ -14,6 +14,17 @@ export const normalize = (s: string) =>
     .replace(/[–—]/g, "-")
     .replace(/\s+/g, " ")
     .trim();
+export const evaluationDescription=(e:Evaluation)=>e.kind==='initial'?'Avaliação inicial':[
+ e.moment||'Sem momento',
+ e.scales.map(scale=>SCALE_NAMES[scale]).join(' e '),
+].filter(Boolean).join(' · ');
+export function evaluationPhase(e:Evaluation):number {
+ const moment=normalize(e.moment);
+ if(e.kind==='initial'||/\binicial\b|linha de base|\bpre[- ]intervencao\b/.test(moment))return 0;
+ if(/\bfinal\b/.test(moment))return 2;
+ return 1;
+}
+export const evaluationLabel = (e: Evaluation) => [e.date || "Sem data", evaluationDescription(e)].filter(Boolean).join(" \u00b7 ");
 export interface Choice {
   code: number;
   label: string;

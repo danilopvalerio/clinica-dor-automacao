@@ -1,6 +1,7 @@
 export type PcsItemNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13;
 
 export interface Evaluation {
+  kind: 'initial' | 'scales';
   rowNumber: number;
   recordKey: string;
   sourceId: string;
@@ -10,12 +11,14 @@ export interface Evaluation {
   id: string;
   name: string;
   date: string;
+  dateValue: number | null;
   researcher: string;
   moment: string;
   timestamp: string;
   pcsResponses: Record<PcsItemNumber, number | null>;
   errors: string[];
   fields: Record<string, string>;
+  originalFields: Record<string, string>;
   pcsQuestions: Record<PcsItemNumber, string>;
 }
 
