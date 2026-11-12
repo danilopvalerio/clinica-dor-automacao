@@ -1,4 +1,4 @@
-import { configuredSourceUrl, SHEET_ENV_NAMES } from '../server/sheetSources';
+import { configuredSourceUrl, SHEET_ENV_NAMES } from '../server/sheetSources.js';
 
 const SHEET_ID_PATTERN = /^[A-Za-z0-9_-]{20,}$/;
 const GID_PATTERN = /^\d+$/;
