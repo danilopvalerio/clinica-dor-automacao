@@ -6,7 +6,8 @@ Aplicação web React + TypeScript + Vite para consultar fichas e prontuários d
 
 - Menu lateral apenas com **Página inicial** e **Pacientes**.
 - Busca de pacientes por nome ou ID, com botão **Abrir ficha**.
-- Ficha com identificação, informações básicas e tabela contendo apenas **data e tipo** das avaliações.
+- Ficha com identificação, informações básicas e um **seletor com todas as avaliações do paciente**, reunindo as três fontes. O seletor mostra data, momento e formulário, na ordem definida abaixo; os campos e a consulta da escala acompanham o registro selecionado.
+- A tabela de **data e tipo** continua disponível em **Ver todas as avaliações cadastradas**.
 - **Abrir prontuário do paciente** mostra a avaliação inicial e permite revelar/ocultar as respostas do formulário.
 - No prontuário, escolha **PCS**, **PROMIS-29** ou **SF-36**, selecionando o momento/data de cada registro.
 - Interpretação SF-36 reproduz a escala visual horizontal de 0 a 100 para os oito domínios. As descrições e os significados dos escores baixo/alto foram extraídos do arquivo de referências enviado, na aba **Domínios**, com base nas colunas **Descrição do Domínio (Ciconelli, 1997)**, **Escore BAIXO** e **Escore ALTO**. Os textos foram incorporados em `src/data/sf36References.json`. Não há coluna Situação nem tabela de apuração.

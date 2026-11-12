@@ -9,6 +9,8 @@ import { PromisReport } from "./PromisReport";
 import { Sf36Report } from "./Sf36Report";
 import { PatientBasics, PatientRecord } from "./PatientRecord";
 import { ExportPanel } from "./ExportPanel";
+import { EvaluationPicker } from "./EvaluationPicker";
+import { PatientFields } from "./PatientFields";
 import { SOURCE_LABELS, SourceKind, validateSource } from "./services/sources";
 
 type View = "dashboard" | "patients" | "patient" | "record" | "overview" | "details";
@@ -373,13 +375,48 @@ function App() {
               </section>
             )}
             {route.view === "patient" &&
-              (patient ? (
+              (patient && evaluation ? (
                 <section className="patient-profile">
                   <span className="eyebrow">Ficha do paciente</span>
                   <h2>{patient.name || "Paciente sem nome"}</h2>
                   <p className="helper">ID: {patient.id || "Não informado"}</p>
                   <PatientBasics patient={patient} initial={initial} />
-                  <h3 className="subheading">Avaliações cadastradas</h3>
+                  <EvaluationPicker
+                    evaluations={patient.evaluations}
+                    selected={evaluation}
+                    onChange={selectRow}
+                  />
+                  <PatientFields evaluation={evaluation} />
+                  <h3 className="subheading">Escalas do paciente</h3>
+                  <div className="record-scale-list">
+                    {(["pcs", "promis", "sf36"] as ScaleId[]).map(chosenScale => {
+                      const available = patient.evaluations.filter(e => e.scales.includes(chosenScale));
+                      const target = available.find(e => e.recordKey === evaluation.recordKey) ?? available[0];
+                      return <div className="record-scale" key={chosenScale}>
+                        <div>
+                          <h3>{SCALE_NAMES[chosenScale]}</h3>
+                          <span>{available.length} avaliação(ões)</span>
+                          {target && <p className="helper">
+                            {target.recordKey === evaluation.recordKey ? 'Registro selecionado' : 'Registro disponível'}: {target.date || 'Sem data'} · {target.moment || 'Sem momento'}
+                          </p>}
+                        </div>
+                        <button
+                          className="button secondary"
+                          disabled={!target}
+                          onClick={() => target && navigate({
+                            view: "overview",
+                            patient: patient.key,
+                            scale: chosenScale,
+                            row: target.recordKey,
+                          })}
+                        >
+                          {target ? `Consultar ${SCALE_NAMES[chosenScale]} →` : 'Sem registro'}
+                        </button>
+                      </div>;
+                    })}
+                  </div>
+                  <details className="report-disclosure">
+                    <summary>Ver todas as avaliações cadastradas</summary>
                   <div className="table-scroll patient-evaluation-table">
                     <table>
                       <thead>
@@ -398,6 +435,7 @@ function App() {
                       </tbody>
                     </table>
                   </div>
+                  </details>
                   <div className="actions-row">
                     <button
                       className="button primary"
