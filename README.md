@@ -4,7 +4,11 @@ Aplicação web React + TypeScript + Vite para consultar fichas e prontuários d
 
 ## Guia de uso
 
-Consulte o [guia em PDF](docs/guia-de-uso.pdf) ou abra a [versão HTML](docs/guia-de-uso.html) no navegador. São 6 páginas com uma apresentação da aplicação, o fluxo da avaliação inicial à reavaliação após a eletroestimulação do nervo vago, três diagramas, consulta de pacientes, exportação de relatórios e configuração inicial.
+Consulte o [guia em PDF](docs/guia-de-uso.pdf) ou abra a [versão HTML](docs/guia-de-uso.html) no navegador. São 7 páginas com uma apresentação da aplicação, o fluxo da avaliação inicial à reavaliação após a eletroestimulação do nervo vago, três diagramas, exportação de relatórios e configuração inicial. Duas páginas detalham o uso das telas, da entrada no sistema à geração do PDF, e esclarecem que esse fluxo pode ser melhorado ou alterado conforme as necessidades da equipe e a evolução do sistema.
+
+## Contexto para agentes de IA
+
+O arquivo [AGENTS.md](AGENTS.md) reúne a estrutura do projeto, as regras de importação, datas e cálculos, o fluxo das telas e o contexto da automação do banco organizado no Google Planilhas.
 
 ## Principais alterações
 

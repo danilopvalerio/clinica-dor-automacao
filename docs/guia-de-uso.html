@@ -26,6 +26,8 @@
     pre { background: #f1f4f6; padding: 3mm 4mm; line-height: 1.45; margin: 2mm 0 3mm; white-space: pre-wrap; }
     svg { width: 100%; height: auto; display: block; margin: 3mm 0 5mm; }
     .caption { font-size: 9pt; color: #586c74; }
+    .screen-flow { line-height: 1.4; }
+    .screen-flow h3 { margin-top: 5mm; }
     footer { position: absolute; bottom: 10mm; left: 18mm; right: 18mm; border-top: 1px solid #d9e3e4; padding-top: 3mm; display: flex; justify-content: space-between; font-size: 8.5pt; color: #60727a; }
     @media print {
       body { background: white; }
@@ -66,7 +68,7 @@
     </ul>
     <div class="note">Para acompanhar o antes e o depois, consulte os registros da mesma escala e do mesmo paciente nos momentos correspondentes. A análise das mudanças observadas é feita pela equipe responsável.</div>
     <p class="caption">As próximas páginas apresentam o fluxo do atendimento e o passo a passo para carregar dados, consultar avaliações e gerar relatórios.</p>
-    <footer><span>Guia de uso · Clínica da Dor</span><span>1 / 6</span></footer>
+    <footer><span>Guia de uso · Clínica da Dor</span><span>1 / 7</span></footer>
   </section>
 
   <section class="page" aria-labelledby="fluxo-clinico">
@@ -100,7 +102,7 @@
     <h3>Como acompanhar isso na aplicação</h3>
     <p>Depois que as coletas estiverem nas planilhas, atualize as fontes, abra o paciente e selecione os registros anteriores e posteriores à intervenção. Consulte os resultados de cada escala e, se necessário, inclua os dois momentos no PDF.</p>
     <div class="note">Use o mesmo ID do paciente em todas as coletas e confira a data e o momento de cada registro. Assim, a avaliação inicial e as reavaliações permanecem vinculadas à mesma ficha.</div>
-    <footer><span>Guia de uso · Clínica da Dor</span><span>2 / 6</span></footer>
+    <footer><span>Guia de uso · Clínica da Dor</span><span>2 / 7</span></footer>
   </section>
 
   <section class="page" aria-labelledby="titulo">
@@ -138,12 +140,13 @@
     </ol>
     <div class="note">A aplicação consulta os dados; não cadastra nem edita respostas. Faça correções na planilha de origem e atualize a fonte no sistema.</div>
     <p>Não há banco de dados próprio. Os registros ficam em memória e são carregados novamente ao abrir ou recarregar a página.</p>
-    <footer><span>Guia de uso · Clínica da Dor</span><span>3 / 6</span></footer>
+    <footer><span>Guia de uso · Clínica da Dor</span><span>3 / 7</span></footer>
   </section>
 
-  <section class="page" aria-labelledby="consulta">
-    <div class="brand">CONSULTA DO PACIENTE</div>
-    <h2 id="consulta">Da busca aos resultados</h2>
+  <section class="page screen-flow" aria-labelledby="consulta">
+    <div class="brand">FLUXO DAS TELAS · 1 DE 2</div>
+    <h2 id="consulta">Da entrada à ficha do paciente</h2>
+    <p class="intro">Siga este caminho para localizar o paciente e escolher a avaliação que deseja consultar.</p>
     <svg viewBox="0 0 650 155" role="img" aria-label="Pacientes, buscar por nome ou ID, abrir ficha e escolher entre consultar uma escala ou abrir o prontuário.">
       <defs><marker id="a2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#397f77"/></marker></defs>
       <g fill="#edf6f4" stroke="#78a7a1" stroke-width="1.4">
@@ -159,13 +162,36 @@
         <text x="549" y="120">Escolher avaliação</text><text x="549" y="138">ou abrir prontuário</text><text x="298" y="129">Consultar escala / resultados</text>
       </g>
     </svg>
-    <ol>
-      <li><strong>Localize o paciente.</strong> Entre em <strong>Pacientes</strong> pelo menu ou pelo cartão da página inicial. Digite o nome ou a identificação e clique em <strong>Abrir ficha</strong>.</li>
-      <li><strong>Confira a identificação.</strong> Verifique nome, ID e os dados básicos. Informações não disponíveis aparecem sem preenchimento.</li>
-      <li><strong>Selecione o registro.</strong> No campo <strong>Avaliação</strong>, escolha a data, o momento e o formulário desejados. Os campos da ficha acompanham essa escolha.</li>
-      <li><strong>Consulte uma escala.</strong> Clique em <strong>Consultar PCS</strong>, <strong>Consultar PROMIS-29</strong> ou <strong>Consultar SF-36</strong>. Confira novamente a data e o momento na tela de resultados.</li>
-      <li><strong>Abra o prontuário quando precisar do histórico.</strong> Na ficha, clique em <strong>Abrir prontuário do paciente</strong>. Em <strong>Avaliação inicial</strong>, use <strong>Exibir detalhes</strong> para ver as respostas. A seção <strong>Escalas aplicadas</strong> dá acesso aos registros por momento e data.</li>
-    </ol>
+    <h3>1. Página inicial — conferir o carregamento</h3>
+    <p>Aguarde a leitura das três fontes. Em <strong>Fontes de dados</strong>, confira os registros carregados e eventuais erros. Use <strong>Atualizar</strong> para buscar alterações da fonte. Depois, abra <strong>Pacientes</strong> pelo cartão ou pelo menu lateral.</p>
+
+    <h3>2. Pacientes — buscar e abrir a ficha</h3>
+    <p>Em <strong>Buscar por nome ou identificação</strong>, digite o nome ou o ID. A lista é filtrada enquanto você escreve. Confira a identificação e clique em <strong>Abrir ficha</strong>. Se não encontrar o paciente, revise a busca e atualize a fonte na página inicial.</p>
+
+    <h3>3. Ficha do paciente — escolher o registro</h3>
+    <p>Confira o nome, o ID e os dados básicos. No campo <strong>Avaliação</strong>, escolha a data, o momento e o formulário. Os campos exibidos acompanham o registro selecionado.</p>
+    <p>A lista mostra avaliações iniciais, acompanhamentos e reavaliações finais. Dentro de cada grupo, a ordem é por data crescente e depois alfabética. Registros repetidos continuam disponíveis.</p>
+    <p>A partir da ficha, você pode seguir por dois caminhos:</p>
+    <ul>
+      <li><strong>Consultar uma escala:</strong> clique em <strong>Consultar PCS</strong>, <strong>Consultar PROMIS-29</strong> ou <strong>Consultar SF-36</strong>. Confira o registro indicado junto ao botão. Sem dados, aparece <strong>Sem registro</strong>.</li>
+      <li><strong>Consultar o prontuário:</strong> clique em <strong>Abrir prontuário do paciente</strong> para ver a avaliação inicial e acessar as escalas por momento e data.</li>
+    </ul>
+    <p>Para conferir a relação de datas e formulários, expanda <strong>Ver todas as avaliações cadastradas</strong>.</p>
+    <div class="note"><strong>Fluxo sujeito a ajustes:</strong> a sequência de uso e as telas podem ser melhoradas ou alteradas conforme as necessidades da equipe e a evolução do sistema.</div>
+    <footer><span>Guia de uso · Clínica da Dor</span><span>4 / 7</span></footer>
+  </section>
+
+  <section class="page screen-flow" aria-labelledby="fluxo-resultados">
+    <div class="brand">FLUXO DAS TELAS · 2 DE 2</div>
+    <h2 id="fluxo-resultados">Do prontuário ao relatório</h2>
+    <p class="intro">Confira os registros antes de consultar ou exportar.</p>
+
+    <h3>4. Prontuário do paciente — consultar o histórico</h3>
+    <p>Em <strong>Avaliação inicial</strong>, confira data e responsável. Se houver vários registros, escolha um no seletor. Use <strong>Exibir detalhes</strong> para abrir as respostas e <strong>Ocultar formulário da avaliação inicial</strong> para recolhê-las.</p>
+    <p>Em <strong>Escalas aplicadas</strong>, escolha a escala e clique no botão do momento e da data desejados para abrir seus resultados.</p>
+
+    <h3>5. Resultados da escala — conferir a avaliação</h3>
+    <p>Confira paciente, data, momento e responsável. Use o seletor <strong>Avaliação</strong> para trocar os registros disponíveis da mesma escala.</p>
     <table>
       <thead><tr><th>Escala</th><th>O que aparece na consulta</th></tr></thead>
       <tbody>
@@ -174,8 +200,18 @@
         <tr><td><strong>SF-36</strong></td><td>Oito domínios em escalas visuais de 0 a 100. O resumo do preenchimento e as respostas podem ser expandidos.</td></tr>
       </tbody>
     </table>
-    <div class="note">Se a escala não tiver o registro escolhido na ficha, o sistema abre outro registro disponível. Sempre confirme a data e o momento antes de consultar ou exportar.</div>
-    <footer><span>Guia de uso · Clínica da Dor</span><span>4 / 6</span></footer>
+    <p>Para acompanhar o antes e o depois, troque entre a inicial e a reavaliação da <strong>mesma escala</strong>. Os dois momentos podem entrar no PDF.</p>
+
+    <h3>6. Exportação — escolher o conteúdo e salvar</h3>
+    <p>Use <strong>Exportar prontuário · configurar PDF</strong> no prontuário ou <strong>Exportar PDF · escolher conteúdo</strong> nos resultados. Na janela que abrir:</p>
+    <ol>
+      <li>Escolha a avaliação inicial e as escalas desejadas, conferindo datas e momentos.</li>
+      <li>Marque <strong>Incluir respostas das escalas</strong> se precisar dos itens respondidos.</li>
+      <li>Clique em <strong>Imprimir / salvar em PDF</strong>. No navegador, escolha <strong>Salvar como PDF</strong>, confira a prévia e salve.</li>
+    </ol>
+    <p>Use <strong>Cancelar</strong> para fechar a configuração. Na consulta, use <strong>← Voltar</strong> para retornar ou <strong>Pacientes</strong> no menu para iniciar outra busca.</p>
+    <div class="note">Se o registro da ficha não pertencer à escala escolhida, outro registro disponível será aberto. Confirme sempre a data e o momento.</div>
+    <footer><span>Guia de uso · Clínica da Dor</span><span>5 / 7</span></footer>
   </section>
 
   <section class="page" aria-labelledby="pdf">
@@ -209,7 +245,7 @@
     <div class="note">O botão de impressão só é habilitado quando há pelo menos uma avaliação inicial ou um registro de escala selecionado, além da ficha básica.</div>
     <p>Ao exportar a partir de uma escala, o registro em consulta já vem marcado. Ao exportar pelo prontuário, a avaliação inicial vem marcada quando disponível; escolha as escalas desejadas.</p>
     <p>Os resultados devem ser interpretados em conjunto com a avaliação profissional.</p>
-    <footer><span>Guia de uso · Clínica da Dor</span><span>5 / 6</span></footer>
+    <footer><span>Guia de uso · Clínica da Dor</span><span>6 / 7</span></footer>
   </section>
 
   <section class="page" aria-labelledby="configuracao">
@@ -238,7 +274,7 @@ SHEET_INITIAL_URL="https://docs.google.com/spreadsheets/d/ID_3/edit"</code></pre
       </tbody>
     </table>
     <p><strong>Acesso aos dados:</strong> esta versão não possui autenticação. Dados reais exigem um ambiente com controle de acesso. Manter os links no servidor não impede o acesso não autenticado à rota de dados.</p>
-    <footer><span>Guia de uso · Clínica da Dor</span><span>6 / 6</span></footer>
+    <footer><span>Guia de uso · Clínica da Dor</span><span>7 / 7</span></footer>
   </section>
 </body>
 </html>
