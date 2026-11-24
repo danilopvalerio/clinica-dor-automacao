@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guia de uso — Clínica da Dor</title>
+  <style>
+    @page { size: A4; margin: 0; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #e8edf0; color: #24343c; font: 11pt/1.45 Arial, sans-serif; }
+    .page { width: 210mm; height: 297mm; margin: 8mm auto; padding: 17mm 18mm 19mm; background: white; position: relative; }
+    .brand { color: #246b67; font-size: 9pt; font-weight: bold; letter-spacing: 1px; margin-bottom: 9mm; }
+    h1 { font-size: 27pt; line-height: 1.15; color: #164b49; margin: 0 0 4mm; }
+    h2 { font-size: 19pt; line-height: 1.2; color: #164b49; margin: 0 0 6mm; }
+    h3 { font-size: 12pt; color: #164b49; margin: 6mm 0 2mm; }
+    p { margin: 0 0 3mm; }
+    .intro { font-size: 12pt; color: #52626a; margin-bottom: 6mm; }
+    .note { background: #edf6f4; border-left: 3px solid #397f77; padding: 3mm 4mm; margin: 4mm 0; }
+    ul, ol { margin: 2mm 0 4mm; padding-left: 6mm; }
+    li { margin-bottom: 2.8mm; padding-left: 1mm; }
+    li p { margin: 1mm 0 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 10pt; margin: 3mm 0; }
+    th { text-align: left; color: #164b49; background: #edf6f4; }
+    td, th { padding: 2.5mm 3mm; vertical-align: top; border-bottom: 1px solid #d9e3e4; }
+    code { font: 9.5pt Consolas, monospace; }
+    pre { background: #f1f4f6; padding: 3mm 4mm; line-height: 1.45; margin: 2mm 0 3mm; white-space: pre-wrap; }
+    svg { width: 100%; height: auto; display: block; margin: 3mm 0 5mm; }
+    .caption { font-size: 9pt; color: #586c74; }
+    footer { position: absolute; bottom: 10mm; left: 18mm; right: 18mm; border-top: 1px solid #d9e3e4; padding-top: 3mm; display: flex; justify-content: space-between; font-size: 8.5pt; color: #60727a; }
+    @media print {
+      body { background: white; }
+      .page { margin: 0; break-after: page; }
+      .page:last-child { break-after: auto; }
+    }
+    @media screen and (max-width: 800px) {
+      .page { width: 100%; height: auto; min-height: 297mm; margin: 0 0 4mm; padding: 10mm 7mm 24mm; }
+      footer { left: 7mm; right: 7mm; }
+    }
+  </style>
+</head>
+<body>
+  <section class="page" aria-labelledby="apresentacao">
+    <div class="brand">NUTES / UEPB · CLÍNICA DA DOR</div>
+    <h1 id="apresentacao">Guia de uso</h1>
+    <p class="intro">Acompanhamento da avaliação da dor na Clínica da Dor.</p>
+    <p>A aplicação apoia a equipe na organização e na consulta das avaliações dos pacientes atendidos na Clínica da Dor. Ela reúne o prontuário inicial e os resultados de escalas utilizadas para acompanhar a dor e aspectos da saúde e da qualidade de vida.</p>
+    <p>No fluxo da clínica, primeiro é feita a avaliação inicial do prontuário. Depois, são coletadas as escalas, realizada a eletroestimulação do nervo vago e feita uma reavaliação com as mesmas escalas. Os registros desses momentos permitem à equipe consultar o estado do paciente antes e depois da intervenção.</p>
+
+    <h3>O que a aplicação reúne</h3>
+    <table>
+      <thead><tr><th>Registro</th><th>Para que serve no acompanhamento</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Avaliação inicial do prontuário</strong></td><td>Reúne a identificação, a queixa principal, o histórico de saúde e outras informações clínicas do paciente.</td></tr>
+        <tr><td><strong>PCS</strong></td><td>Organiza respostas sobre pensamentos e sentimentos relacionados à dor, com escore total e subescalas.</td></tr>
+        <tr><td><strong>PROMIS-29</strong></td><td>Apresenta diferentes aspectos da saúde, como função física, sintomas e intensidade da dor.</td></tr>
+        <tr><td><strong>SF-36</strong></td><td>Apresenta oito domínios relacionados à saúde e à qualidade de vida.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Como ela ajuda no trabalho da equipe</h3>
+    <ul>
+      <li>Reúne as informações das planilhas na ficha de cada paciente.</li>
+      <li>Calcula e apresenta os resultados das escalas a partir das respostas registradas.</li>
+      <li>Permite consultar cada avaliação pela data e pelo momento da coleta.</li>
+      <li>Prepara um PDF com o prontuário e os registros escolhidos.</li>
+    </ul>
+    <div class="note">Para acompanhar o antes e o depois, consulte os registros da mesma escala e do mesmo paciente nos momentos correspondentes. A análise das mudanças observadas é feita pela equipe responsável.</div>
+    <p class="caption">As próximas páginas apresentam o fluxo do atendimento e o passo a passo para carregar dados, consultar avaliações e gerar relatórios.</p>
+    <footer><span>Guia de uso · Clínica da Dor</span><span>1 / 6</span></footer>
+  </section>
+
+  <section class="page" aria-labelledby="fluxo-clinico">
+    <div class="brand">CONTEXTO DO ATENDIMENTO</div>
+    <h2 id="fluxo-clinico">Da avaliação à reavaliação</h2>
+    <p class="intro">O acompanhamento mantém o vínculo entre o paciente, o prontuário e as coletas realizadas em cada momento.</p>
+    <svg viewBox="0 0 650 270" role="img" aria-label="Fluxo da Clínica da Dor: avaliação inicial do prontuário, coleta das escalas antes da intervenção, eletroestimulação do nervo vago e reavaliação com as mesmas escalas.">
+      <defs><marker id="a-clinico" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#397f77"/></marker></defs>
+      <g fill="#edf6f4" stroke="#78a7a1" stroke-width="1.4">
+        <rect x="95" y="3" width="460" height="47" rx="7"/>
+        <rect x="95" y="75" width="460" height="47" rx="7"/>
+        <rect x="95" y="147" width="460" height="47" rx="7"/>
+        <rect x="95" y="219" width="460" height="47" rx="7"/>
+      </g>
+      <g fill="none" stroke="#397f77" stroke-width="1.7" marker-end="url(#a-clinico)">
+        <path d="M325 50 V73"/><path d="M325 122 V145"/><path d="M325 194 V217"/>
+      </g>
+      <g fill="#164b49" font-family="Arial, sans-serif" font-size="16" text-anchor="middle">
+        <text x="325" y="32">1. Avaliação inicial do prontuário</text>
+        <text x="325" y="104">2. Coleta das escalas antes da intervenção</text>
+        <text x="325" y="176">3. Eletroestimulação do nervo vago</text>
+        <text x="325" y="248">4. Reavaliação com as mesmas escalas</text>
+      </g>
+    </svg>
+    <ol>
+      <li><strong>Avaliação inicial do prontuário.</strong> A equipe registra as informações pessoais e clínicas, a queixa e o histórico de saúde. Esse registro contextualiza as avaliações seguintes.</li>
+      <li><strong>Primeira coleta das escalas.</strong> Antes da eletroestimulação, são registradas as respostas às escalas previstas no atendimento. Essa coleta fornece os resultados de referência para a consulta posterior.</li>
+      <li><strong>Eletroestimulação do nervo vago.</strong> A equipe realiza a intervenção conforme o protocolo da clínica. Essa é a etapa do atendimento entre a primeira coleta e a reavaliação.</li>
+      <li><strong>Reavaliação.</strong> Após a intervenção, são aplicadas novamente as mesmas escalas. As novas respostas formam outros registros, identificados pela data e pelo momento da avaliação.</li>
+    </ol>
+    <h3>Como acompanhar isso na aplicação</h3>
+    <p>Depois que as coletas estiverem nas planilhas, atualize as fontes, abra o paciente e selecione os registros anteriores e posteriores à intervenção. Consulte os resultados de cada escala e, se necessário, inclua os dois momentos no PDF.</p>
+    <div class="note">Use o mesmo ID do paciente em todas as coletas e confira a data e o momento de cada registro. Assim, a avaliação inicial e as reavaliações permanecem vinculadas à mesma ficha.</div>
+    <footer><span>Guia de uso · Clínica da Dor</span><span>2 / 6</span></footer>
+  </section>
+
+  <section class="page" aria-labelledby="titulo">
+    <div class="brand">NUTES / UEPB · CLÍNICA DA DOR</div>
+    <h2 id="titulo">Carregar e atualizar os dados</h2>
+    <p class="intro">Consulta de pacientes, avaliações e relatórios em PDF.</p>
+    <p>O sistema reúne respostas de planilhas para consultar a ficha e o prontuário do paciente, calcular resultados de PCS, PROMIS-29 e SF-36 e preparar relatórios personalizados.</p>
+
+    <h3>Como os dados chegam ao sistema</h3>
+    <svg viewBox="0 0 650 235" role="img" aria-label="As três planilhas são lidas pelo servidor e organizadas por paciente para consulta de resultados e geração de PDF.">
+      <defs><marker id="a1" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#397f77"/></marker></defs>
+      <g fill="#edf6f4" stroke="#78a7a1" stroke-width="1.4">
+        <rect x="2" y="8" width="195" height="47" rx="7"/>
+        <rect x="227" y="8" width="195" height="47" rx="7"/>
+        <rect x="452" y="8" width="195" height="47" rx="7"/>
+        <rect x="170" y="102" width="310" height="47" rx="7"/>
+        <rect x="170" y="185" width="310" height="47" rx="7"/>
+      </g>
+      <g fill="none" stroke="#397f77" stroke-width="1.7" marker-end="url(#a1)">
+        <path d="M99 55 V78 H283 V100"/><path d="M325 55 V100"/><path d="M549 55 V78 H367 V100"/>
+        <path d="M325 149 V183"/>
+      </g>
+      <g fill="#164b49" font-family="Arial, sans-serif" font-size="15" text-anchor="middle">
+        <text x="99" y="37">Avaliação inicial</text><text x="325" y="37">PCS e PROMIS-29</text><text x="549" y="37">SF-36</text>
+        <text x="325" y="131">Servidor lê as planilhas em XLSX</text><text x="325" y="214">Sistema organiza por paciente</text>
+      </g>
+    </svg>
+    <p class="caption">Os registros são associados pelo ID do paciente. Sem ID, o sistema usa o nome normalizado; diferenças no cadastro podem separar fichas.</p>
+
+    <h3>Ao abrir a aplicação</h3>
+    <ol>
+      <li>Aguarde o carregamento automático das três fontes.</li>
+      <li>Em <strong>Fontes de dados</strong>, confira a quantidade de registros e eventuais mensagens de erro.</li>
+      <li>Use <strong>Atualizar</strong> na fonte desejada para buscar alterações da planilha.</li>
+    </ol>
+    <div class="note">A aplicação consulta os dados; não cadastra nem edita respostas. Faça correções na planilha de origem e atualize a fonte no sistema.</div>
+    <p>Não há banco de dados próprio. Os registros ficam em memória e são carregados novamente ao abrir ou recarregar a página.</p>
+    <footer><span>Guia de uso · Clínica da Dor</span><span>3 / 6</span></footer>
+  </section>
+
+  <section class="page" aria-labelledby="consulta">
+    <div class="brand">CONSULTA DO PACIENTE</div>
+    <h2 id="consulta">Da busca aos resultados</h2>
+    <svg viewBox="0 0 650 155" role="img" aria-label="Pacientes, buscar por nome ou ID, abrir ficha e escolher entre consultar uma escala ou abrir o prontuário.">
+      <defs><marker id="a2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#397f77"/></marker></defs>
+      <g fill="#edf6f4" stroke="#78a7a1" stroke-width="1.4">
+        <rect x="2" y="10" width="145" height="46" rx="7"/><rect x="188" y="10" width="220" height="46" rx="7"/>
+        <rect x="450" y="10" width="198" height="46" rx="7"/><rect x="450" y="101" width="198" height="46" rx="7"/>
+        <rect x="188" y="101" width="220" height="46" rx="7"/>
+      </g>
+      <g fill="none" stroke="#397f77" stroke-width="1.7" marker-end="url(#a2)">
+        <path d="M147 33 H186"/><path d="M408 33 H448"/><path d="M549 56 V99"/><path d="M450 124 H410"/>
+      </g>
+      <g fill="#164b49" font-family="Arial, sans-serif" font-size="15" text-anchor="middle">
+        <text x="75" y="38">Pacientes</text><text x="298" y="38">Buscar por nome ou ID</text><text x="549" y="38">Abrir ficha</text>
+        <text x="549" y="120">Escolher avaliação</text><text x="549" y="138">ou abrir prontuário</text><text x="298" y="129">Consultar escala / resultados</text>
+      </g>
+    </svg>
+    <ol>
+      <li><strong>Localize o paciente.</strong> Entre em <strong>Pacientes</strong> pelo menu ou pelo cartão da página inicial. Digite o nome ou a identificação e clique em <strong>Abrir ficha</strong>.</li>
+      <li><strong>Confira a identificação.</strong> Verifique nome, ID e os dados básicos. Informações não disponíveis aparecem sem preenchimento.</li>
+      <li><strong>Selecione o registro.</strong> No campo <strong>Avaliação</strong>, escolha a data, o momento e o formulário desejados. Os campos da ficha acompanham essa escolha.</li>
+      <li><strong>Consulte uma escala.</strong> Clique em <strong>Consultar PCS</strong>, <strong>Consultar PROMIS-29</strong> ou <strong>Consultar SF-36</strong>. Confira novamente a data e o momento na tela de resultados.</li>
+      <li><strong>Abra o prontuário quando precisar do histórico.</strong> Na ficha, clique em <strong>Abrir prontuário do paciente</strong>. Em <strong>Avaliação inicial</strong>, use <strong>Exibir detalhes</strong> para ver as respostas. A seção <strong>Escalas aplicadas</strong> dá acesso aos registros por momento e data.</li>
+    </ol>
+    <table>
+      <thead><tr><th>Escala</th><th>O que aparece na consulta</th></tr></thead>
+      <tbody>
+        <tr><td><strong>PCS</strong></td><td>Escore total de 0 a 52, classificação e subescalas. <strong>Ver detalhes e respostas</strong> abre os itens.</td></tr>
+        <tr><td><strong>PROMIS-29</strong></td><td>T-scores e classificação por domínio; intensidade da dor de 0 a 10. As respostas ficam recolhidas.</td></tr>
+        <tr><td><strong>SF-36</strong></td><td>Oito domínios em escalas visuais de 0 a 100. O resumo do preenchimento e as respostas podem ser expandidos.</td></tr>
+      </tbody>
+    </table>
+    <div class="note">Se a escala não tiver o registro escolhido na ficha, o sistema abre outro registro disponível. Sempre confirme a data e o momento antes de consultar ou exportar.</div>
+    <footer><span>Guia de uso · Clínica da Dor</span><span>4 / 6</span></footer>
+  </section>
+
+  <section class="page" aria-labelledby="pdf">
+    <div class="brand">RELATÓRIOS</div>
+    <h2 id="pdf">Montar e salvar um PDF</h2>
+    <p class="intro">Escolha o conteúdo e os registros que devem compor o relatório do paciente.</p>
+    <ol>
+      <li><strong>Abra a configuração.</strong> No prontuário, clique em <strong>Exportar prontuário · configurar PDF</strong>. Você também pode usar o botão de exportação na tela de uma escala.</li>
+      <li><strong>Escolha a avaliação inicial.</strong> Marque <strong>Prontuário / avaliação inicial</strong> para incluir suas informações e respostas. Se houver mais de um registro, selecione a data desejada.</li>
+      <li><strong>Marque as escalas e os momentos.</strong> Selecione as avaliações de PCS, PROMIS-29 e SF-36 que deseja incluir. <strong>Selecionar todas</strong> marca todos os registros daquela escala.</li>
+      <li><strong>Defina se precisa das respostas.</strong> Marque <strong>Incluir respostas das escalas</strong> para acrescentar os itens respondidos. Essa opção começa desmarcada.</li>
+      <li><strong>Salve o documento.</strong> Clique em <strong>Imprimir / salvar em PDF</strong>. Na janela de impressão do navegador, escolha <strong>Salvar como PDF</strong>, confira a prévia e salve no local desejado.</li>
+    </ol>
+
+    <h3>Como o relatório é organizado</h3>
+    <table>
+      <thead><tr><th>Conteúdo</th><th>Quando é incluído</th></tr></thead>
+      <tbody>
+        <tr><td>Ficha básica do paciente</td><td>Sempre, na primeira página.</td></tr>
+        <tr><td>Avaliação inicial</td><td>Quando a opção estiver marcada e houver registro disponível.</td></tr>
+        <tr><td>Resultados das escalas</td><td>Somente para os registros selecionados.</td></tr>
+        <tr><td>Respostas das escalas</td><td>Quando <strong>Incluir respostas das escalas</strong> estiver marcado.</td></tr>
+      </tbody>
+    </table>
+    <h3>Antes de salvar</h3>
+    <ul>
+      <li>Confira o nome e o ID do paciente.</li>
+      <li>Revise as datas e os momentos selecionados.</li>
+      <li>Verifique na prévia se o conteúdo desejado está presente.</li>
+    </ul>
+    <div class="note">O botão de impressão só é habilitado quando há pelo menos uma avaliação inicial ou um registro de escala selecionado, além da ficha básica.</div>
+    <p>Ao exportar a partir de uma escala, o registro em consulta já vem marcado. Ao exportar pelo prontuário, a avaliação inicial vem marcada quando disponível; escolha as escalas desejadas.</p>
+    <p>Os resultados devem ser interpretados em conjunto com a avaliação profissional.</p>
+    <footer><span>Guia de uso · Clínica da Dor</span><span>5 / 6</span></footer>
+  </section>
+
+  <section class="page" aria-labelledby="configuracao">
+    <div class="brand">CONFIGURAÇÃO E SUPORTE</div>
+    <h2 id="configuracao">Primeira execução e dúvidas comuns</h2>
+    <h3>Para quem vai executar o projeto localmente</h3>
+    <p>Requisitos: <strong>Node.js 20.19 ou superior</strong> e <strong>npm</strong>. No terminal, dentro da pasta do projeto:</p>
+    <pre><code>npm install
+Copy-Item .env.example .env</code></pre>
+    <p>O comando de cópia é para PowerShell. Copie apenas se ainda não existir um <code>.env</code>. Preencha nele os links das três planilhas:</p>
+    <pre><code>SHEET_PCS_PROMIS_URL="https://docs.google.com/spreadsheets/d/ID_1/edit"
+SHEET_SF36_URL="https://docs.google.com/spreadsheets/d/ID_2/edit"
+SHEET_INITIAL_URL="https://docs.google.com/spreadsheets/d/ID_3/edit"</code></pre>
+    <p>Substitua os exemplos pelos links reais. Eles precisam permitir a exportação XLSX pelo servidor sem tela de login. Inicie com <code>npm run dev</code> e abra o endereço indicado no terminal, normalmente <code>http://localhost:5173</code>. Reinicie o servidor se alterar o <code>.env</code>.</p>
+
+    <h3>Testar com arquivo local</h3>
+    <p>Na página inicial, expanda <strong>Importar XLSX local para testes</strong> e escolha o arquivo no campo da fonte correspondente. O arquivo é lido em memória e precisa ser importado novamente após recarregar a página.</p>
+
+    <table>
+      <thead><tr><th>Situação</th><th>O que fazer</th></tr></thead>
+      <tbody>
+        <tr><td>Erro de sincronização</td><td>Confira conexão, links e permissões da planilha. Clique em <strong>Atualizar</strong> na fonte afetada.</td></tr>
+        <tr><td>Paciente ausente ou em fichas separadas</td><td>Revise a busca e o ID nas planilhas. Sem ID, diferenças de nome podem separar os registros.</td></tr>
+        <tr><td>Escala sem registro ou resultado indisponível</td><td>Confira a fonte, a data e o momento. Consulte os avisos de importação e verifique cabeçalhos e respostas na origem.</td></tr>
+        <tr><td>Arquivo recusado</td><td>Selecione o campo correspondente ao formulário e mantenha os cabeçalhos esperados pelo projeto.</td></tr>
+      </tbody>
+    </table>
+    <p><strong>Acesso aos dados:</strong> esta versão não possui autenticação. Dados reais exigem um ambiente com controle de acesso. Manter os links no servidor não impede o acesso não autenticado à rota de dados.</p>
+    <footer><span>Guia de uso · Clínica da Dor</span><span>6 / 6</span></footer>
+  </section>
+</body>
+</html>

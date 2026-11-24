@@ -2,6 +2,10 @@
 
 Aplicação web React + TypeScript + Vite para consultar fichas e prontuários de pacientes, resultados de PCS, PROMIS-29 e SF-36, e preparar relatórios PDF personalizados. Esta versão preserva os cálculos das escalas existentes e integra os registros da **Avaliação inicial**.
 
+## Guia de uso
+
+Consulte o [guia em PDF](docs/guia-de-uso.pdf) ou abra a [versão HTML](docs/guia-de-uso.html) no navegador. São 6 páginas com uma apresentação da aplicação, o fluxo da avaliação inicial à reavaliação após a eletroestimulação do nervo vago, três diagramas, consulta de pacientes, exportação de relatórios e configuração inicial.
+
 ## Principais alterações
 
 - Menu lateral apenas com **Página inicial** e **Pacientes**.
